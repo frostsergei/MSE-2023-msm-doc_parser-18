@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.31911.196
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ParserGUI", "ParserGUI\ParserGUI.csproj", "{249CBCFF-9843-4F6B-8DDB-093418CD0460}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{249CBCFF-9843-4F6B-8DDB-093418CD0460}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{249CBCFF-9843-4F6B-8DDB-093418CD0460}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{249CBCFF-9843-4F6B-8DDB-093418CD0460}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{249CBCFF-9843-4F6B-8DDB-093418CD0460}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {ED149101-7B1B-40A5-8299-AC3ABDFCAF3D}
+	EndGlobalSection
+EndGlobal
