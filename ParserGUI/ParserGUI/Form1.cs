@@ -48,10 +48,8 @@ namespace ParserGUI
                 if (sfd.FileName != "")
                 {
                     TextBoxSave.Text = sfd.FileName;
-                    Stream NewFile = sfd.OpenFile();
-                    StreamWriter sw = new StreamWriter(NewFile);
-                    sw.WriteLine(Result);
-                    sw.Close();
+                    FileStream NewFile = File.OpenWrite(sfd.FileName);
+                    XMLGenerator.ToFile(Result, NewFile);
                     NewFile.Close();
                     MessageBox.Show("Файл успешно сохранен!");
                 }
