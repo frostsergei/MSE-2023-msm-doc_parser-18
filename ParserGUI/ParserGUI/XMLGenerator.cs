@@ -2,6 +2,7 @@
 using System.Text;
 using System.IO;
 using System.Xml;
+using System.Linq;
 
 namespace ParserGUI
 {
@@ -22,10 +23,12 @@ namespace ParserGUI
             foreach(string l in lines)
             {
                 string l_out = l.Replace("\r", "");
+                IEnumerable<char> c_out = l_out.Normalize(NormalizationForm.FormD);
+                l_out = new string(c_out.Where(c => !char.IsControl(c)).ToArray());
                 if(l_out == "")
                     continue;
                 writer.WriteStartElement("line");
-                writer.WriteString(l_out); 
+                writer.WriteString(l_out);
                 writer.WriteEndElement();
             }
             writer.WriteEndElement();
