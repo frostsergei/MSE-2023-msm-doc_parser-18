@@ -20,10 +20,11 @@ namespace ParserGUI
 
         OpenFileDialog ofd = new OpenFileDialog();
         string Result;
+        public static bool BFClicked = false;
 
         private void TextBoxChoose_TextChanged(object sender, EventArgs e)
         {
-
+            TextBoxChoose.BackColor = SystemColors.Window;
         }
 
         private void CheckBoxSave_CheckedChanged(object sender, EventArgs e)
@@ -33,7 +34,7 @@ namespace ParserGUI
 
         private void TextBoxSave_TextChanged(object sender, EventArgs e)
         {
-
+            TextBoxSave.BackColor = SystemColors.Window;
         }
 
         private void ButtonChooseFile_Click(object sender, EventArgs e)
@@ -72,18 +73,38 @@ namespace ParserGUI
                 }
             }
         }
-        private void ButtonStart_Click(object sender, EventArgs e)
+        private async void ButtonStart_Click(object sender, EventArgs e)
         {
-           if (ofd.FileName != "")
+            await Task.Run(() =>
+            {
+                if (ofd.FileName != "")
                 {
+                    BFClicked = true;
                     Result = Parser.PDFToString(ofd.FileName);
-                    RTBOutput.Text = Result;
                 }
                 else
                 {
                     MessageBox.Show("Вы не выбрали файл!");
                 }
             }
+            );
+            RTBOutput.Text = Result;
         }
+
+        private void RTBOutput_TextChanged(object sender, EventArgs e)
+        {
+            if (RTBOutput.ReadOnly)
+                {
+                    RTBOutput.BackColor = SystemColors.Window;
+                }
+        }
+
+        private void progressBar_Click(object sender, EventArgs e)
+        {
+          
+        }
+        
     }
+    }
+    
 
