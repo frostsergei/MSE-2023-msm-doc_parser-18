@@ -92,11 +92,13 @@ namespace ParserGUI
             // 
             // TextBoxChoose
             // 
+            this.TextBoxChoose.AccessibleRole = System.Windows.Forms.AccessibleRole.TitleBar;
             this.TextBoxChoose.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
             this.TextBoxChoose.Location = new System.Drawing.Point(116, 30);
             this.TextBoxChoose.Multiline = true;
             this.TextBoxChoose.Name = "TextBoxChoose";
+            this.TextBoxChoose.ReadOnly = true;
             this.TextBoxChoose.Size = new System.Drawing.Size(672, 24);
             this.TextBoxChoose.TabIndex = 1;
             this.TextBoxChoose.TextChanged += new System.EventHandler(this.TextBoxChoose_TextChanged);
@@ -110,13 +112,16 @@ namespace ParserGUI
             // 
             // RTBOutput
             // 
-            this.RTBOutput.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            this.RTBOutput.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
             this.RTBOutput.Location = new System.Drawing.Point(12, 98);
             this.RTBOutput.Name = "RTBOutput";
+            this.RTBOutput.ReadOnly = true;
             this.RTBOutput.Size = new System.Drawing.Size(776, 314);
             this.RTBOutput.TabIndex = 4;
             this.RTBOutput.Text = "";
+            this.RTBOutput.TextChanged += new System.EventHandler(this.RTBOutput_TextChanged);
             // 
             // TextBoxSave
             // 
@@ -125,6 +130,7 @@ namespace ParserGUI
             this.TextBoxSave.Location = new System.Drawing.Point(299, 418);
             this.TextBoxSave.Multiline = true;
             this.TextBoxSave.Name = "TextBoxSave";
+            this.TextBoxSave.ReadOnly = true;
             this.TextBoxSave.Size = new System.Drawing.Size(489, 24);
             this.TextBoxSave.TabIndex = 5;
             this.TextBoxSave.TextChanged += new System.EventHandler(this.TextBoxSave_TextChanged);
@@ -136,6 +142,7 @@ namespace ParserGUI
             this.ButtonStart.FlatAppearance.BorderSize = 0;
             this.ButtonStart.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.ButtonStart.Location = new System.Drawing.Point(12, 418);
+            this.ButtonStart.MinimumSize = new System.Drawing.Size(75, 24);
             this.ButtonStart.Name = "ButtonStart";
             this.ButtonStart.Size = new System.Drawing.Size(75, 24);
             this.ButtonStart.TabIndex = 7;
@@ -150,6 +157,7 @@ namespace ParserGUI
             this.ButtonChooseFile.FlatAppearance.BorderSize = 0;
             this.ButtonChooseFile.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.ButtonChooseFile.Location = new System.Drawing.Point(218, 418);
+            this.ButtonChooseFile.MinimumSize = new System.Drawing.Size(75, 24);
             this.ButtonChooseFile.Name = "ButtonChooseFile";
             this.ButtonChooseFile.Size = new System.Drawing.Size(75, 24);
             this.ButtonChooseFile.TabIndex = 8;
@@ -191,6 +199,7 @@ namespace ParserGUI
             this.Controls.Add(this.TextBoxChoose);
             this.Controls.Add(this.TopPanel);
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
+            this.MinimumSize = new System.Drawing.Size(320, 150);
             this.Name = "Window";
             this.Text = "DocParser";
             this.TopPanel.ResumeLayout(false);
