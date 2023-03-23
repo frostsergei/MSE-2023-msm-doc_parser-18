@@ -20,10 +20,11 @@ namespace ParserGUI
 
         OpenFileDialog ofd = new OpenFileDialog();
         string Result;
+        WaitForm WaitForm2 = new WaitForm();
 
         private void TextBoxChoose_TextChanged(object sender, EventArgs e)
         {
-
+            TextBoxChoose.BackColor = SystemColors.Window;
         }
 
         private void CheckBoxSave_CheckedChanged(object sender, EventArgs e)
@@ -33,7 +34,7 @@ namespace ParserGUI
 
         private void TextBoxSave_TextChanged(object sender, EventArgs e)
         {
-
+            TextBoxSave.BackColor = SystemColors.Window;
         }
 
         private void ButtonChooseFile_Click(object sender, EventArgs e)
@@ -60,7 +61,7 @@ namespace ParserGUI
             }
         }
 
-            private void ButtonFile_Click(object sender, EventArgs e)
+        private void ButtonFile_Click(object sender, EventArgs e)
         {
             ofd.Filter = "PDF|*.pdf";
             ofd.Title = "Выбор документа";
@@ -72,18 +73,39 @@ namespace ParserGUI
                 }
             }
         }
-        private void ButtonStart_Click(object sender, EventArgs e)
+        private async void ButtonStart_Click(object sender, EventArgs e)
         {
-           if (ofd.FileName != "")
+            if (ofd.FileName != "")
+            {
+                WaitForm2.Show();
+                WaitForm2.Refresh();
+            }
+
+            await Task.Run(() =>
+            {
+                if (ofd.FileName != "")
                 {
                     Result = Parser.PDFToString(ofd.FileName);
-                    RTBOutput.Text = Result;
                 }
                 else
                 {
                     MessageBox.Show("Вы не выбрали файл!");
                 }
             }
+            );
+            WaitForm2.Close();
+            RTBOutput.Text = Result;
         }
+
+        private void RTBOutput_TextChanged(object sender, EventArgs e)
+        {
+            if (RTBOutput.ReadOnly)
+                {
+                    RTBOutput.BackColor = SystemColors.Window;
+                }
+        }
+
     }
+    }
+    
 

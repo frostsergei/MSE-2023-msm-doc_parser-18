@@ -12,8 +12,8 @@ using System;
 using System.Reflection;
 
 [assembly: System.Reflection.AssemblyMetadata("Verify.TargetFrameworks", "")]
-[assembly: System.Reflection.AssemblyMetadata("Verify.ProjectDirectory", "D:\\Users\\Новая папка\\graphics\\ParserGUI\\ParserGUI\\")]
-[assembly: System.Reflection.AssemblyMetadata("Verify.SolutionDirectory", "D:\\Users\\Новая папка\\graphics\\ParserGUI\\")]
+[assembly: System.Reflection.AssemblyMetadata("Verify.ProjectDirectory", "D:\\Users\\Новая папка\\msm\\ParserGUI\\ParserGUI\\")]
+[assembly: System.Reflection.AssemblyMetadata("Verify.SolutionDirectory", "D:\\Users\\Новая папка\\msm\\ParserGUI\\")]
 
 // Создано классом WriteCodeFragment MSBuild.
 
