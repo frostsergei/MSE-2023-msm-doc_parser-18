@@ -84,8 +84,10 @@ namespace ParserGUI
             {
                 if (ofd.FileName != "")
                 {
-                    BFClicked = true;
-                    Result = Parser.PDFToString(ofd.FileName);
+                    IParser parser = new TabulaParser(ofd.FileName, new NearestNeighbourTextParser());
+                    parser.Parse();
+                    RTFResult result = new RTFResult(parser);
+                    Result = result.Serialize();
                 }
                 else
                 {
@@ -94,7 +96,7 @@ namespace ParserGUI
             }
             );
             WaitForm2.Close();
-            RTBOutput.Text = Result;
+            RTBOutput.Rtf = Result;
         }
 
         private void RTBOutput_TextChanged(object sender, EventArgs e)
