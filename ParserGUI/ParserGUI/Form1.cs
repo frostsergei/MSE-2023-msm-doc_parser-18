@@ -80,11 +80,11 @@ namespace ParserGUI
                 WaitForm2.Show();
                 WaitForm2.Refresh();
             }
-
             await Task.Run(() =>
             {
                 if (ofd.FileName != "")
                 {
+                    BFClicked = true;
                     Result = Parser.PDFToString(ofd.FileName);
                 }
                 else
@@ -104,7 +104,6 @@ namespace ParserGUI
                     RTBOutput.BackColor = SystemColors.Window;
                 }
         }
-
     }
     }
     
