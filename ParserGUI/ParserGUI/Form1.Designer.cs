@@ -201,6 +201,7 @@ namespace ParserGUI
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.MinimumSize = new System.Drawing.Size(320, 150);
             this.Name = "Window";
+            this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
             this.Text = "DocParser";
             this.TopPanel.ResumeLayout(false);
             this.ResumeLayout(false);

@@ -20,7 +20,7 @@ namespace ParserGUI
 
         OpenFileDialog ofd = new OpenFileDialog();
         string Result;
-        public static bool BFClicked = false;
+        WaitForm WaitForm2 = new WaitForm();
 
         private void TextBoxChoose_TextChanged(object sender, EventArgs e)
         {
@@ -61,7 +61,7 @@ namespace ParserGUI
             }
         }
 
-            private void ButtonFile_Click(object sender, EventArgs e)
+        private void ButtonFile_Click(object sender, EventArgs e)
         {
             ofd.Filter = "PDF|*.pdf";
             ofd.Title = "Выбор документа";
@@ -75,6 +75,11 @@ namespace ParserGUI
         }
         private async void ButtonStart_Click(object sender, EventArgs e)
         {
+            if (ofd.FileName != "")
+            {
+                WaitForm2.Show();
+                WaitForm2.Refresh();
+            }
             await Task.Run(() =>
             {
                 if (ofd.FileName != "")
@@ -88,6 +93,7 @@ namespace ParserGUI
                 }
             }
             );
+            WaitForm2.Close();
             RTBOutput.Text = Result;
         }
 
@@ -98,12 +104,6 @@ namespace ParserGUI
                     RTBOutput.BackColor = SystemColors.Window;
                 }
         }
-
-        private void progressBar_Click(object sender, EventArgs e)
-        {
-          
-        }
-        
     }
     }
     
