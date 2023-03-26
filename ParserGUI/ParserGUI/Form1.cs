@@ -8,6 +8,7 @@ using System.Text;
 using System.IO;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using Tabula;
 
 namespace ParserGUI
 {
@@ -82,8 +83,12 @@ namespace ParserGUI
             }
             await Task.Run(() =>
             {
+                DbService dbService = new DbService("YOUR .mdb FILE");
                 if (ofd.FileName != "")
                 {
+                    dbService.ConnectToDb();
+                    dbService.writeTableToDb();
+                    dbService.DisconnectFromDb();
                     IParser parser = new TabulaParser(ofd.FileName, new NearestNeighbourTextParser());
                     parser.Parse();
                     RTFResult result = new RTFResult(parser);
@@ -102,11 +107,11 @@ namespace ParserGUI
         private void RTBOutput_TextChanged(object sender, EventArgs e)
         {
             if (RTBOutput.ReadOnly)
-                {
-                    RTBOutput.BackColor = SystemColors.Window;
-                }
+            {
+                RTBOutput.BackColor = SystemColors.Window;
+            }
         }
     }
-    }
-    
+}
+
 
