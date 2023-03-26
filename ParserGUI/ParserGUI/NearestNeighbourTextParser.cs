@@ -4,7 +4,7 @@ using System.Text;
 using UglyToad.PdfPig.Content;
 using UglyToad.PdfPig.DocumentLayoutAnalysis.WordExtractor;
 
-namespace ParserGUI
+namespace ParserCore
 {
     internal class NearestNeighbourTextParser : ITextParser
     {
