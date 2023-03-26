@@ -20,7 +20,7 @@ namespace ParserGUI
 
         OpenFileDialog ofd = new OpenFileDialog();
         string Result;
-        WaitForm WaitForm2 = new WaitForm();
+        WaitForm WaitForm2;
 
         private void TextBoxChoose_TextChanged(object sender, EventArgs e)
         {
@@ -77,9 +77,8 @@ namespace ParserGUI
         {
             if (ofd.FileName != "")
             {
-                //WaitForm WaitForm2 = new WaitForm();
+                WaitForm2 = new WaitForm();
                 WaitForm2.Show(this);
-                WaitForm2.Refresh();
                 await Task.Run(() =>
                 {
                     Result = Parser.PDFToString(ofd.FileName);
@@ -106,16 +105,20 @@ namespace ParserGUI
 
         private void Window_LocationChanged(object sender, EventArgs e)
         {
-            if (m_PreviousLocation.X != int.MinValue) 
-                WaitForm2.Location = new Point(
-                      WaitForm2.Location.X + Location.X - m_PreviousLocation.X,
-                      WaitForm2.Location.Y + Location.Y - m_PreviousLocation.Y
-                    );
-
-            m_PreviousLocation = Location;
+            if (WaitForm2 != null)
+            {
+                if (m_PreviousLocation.X != int.MinValue)
+                {
+                    WaitForm2.Location = new Point(
+                        WaitForm2.Location.X + Location.X - m_PreviousLocation.X,
+                        WaitForm2.Location.Y + Location.Y - m_PreviousLocation.Y
+                        );
+                }
+                m_PreviousLocation = Location;
+            }
         }
     }
-    }
+}
     
     
 
