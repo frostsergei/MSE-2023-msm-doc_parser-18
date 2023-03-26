@@ -51,7 +51,9 @@
     <Reference Include="SimpleInfoName, Version=1.0.0.0, Culture=neutral, PublicKeyToken=c7a34512ecd69090, processorArchitecture=MSIL">
       <HintPath>..\packages\SimpleInfoName.2.1.0\lib\net472\SimpleInfoName.dll</HintPath>
     </Reference>
-    <Reference Include="System" />
+    <Reference Include="System">
+      <HintPath>..\..\..\..\..\..\..\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.7.2\System.dll</HintPath>
+    </Reference>
     <Reference Include="System.Buffers, Version=4.0.3.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
       <HintPath>..\packages\System.Buffers.4.5.1\lib\net461\System.Buffers.dll</HintPath>
     </Reference>
@@ -81,6 +83,9 @@
     <Reference Include="System.Net.Http" />
     <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Xml" />
+    <Reference Include="Tabula, Version=0.1.3.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Tabula.0.1.3\lib\net47\Tabula.dll</HintPath>
+    </Reference>
     <Reference Include="UglyToad.PdfPig, Version=0.1.7.0, Culture=neutral, PublicKeyToken=605d367334e74123, processorArchitecture=MSIL">
       <HintPath>..\packages\PdfPig.0.1.7\lib\net47\UglyToad.PdfPig.dll</HintPath>
     </Reference>
@@ -116,9 +121,14 @@
     <Compile Include="Form1.Designer.cs">
       <DependentUpon>Form1.cs</DependentUpon>
     </Compile>
+    <Compile Include="ICellParser.cs" />
+    <Compile Include="IParser.cs" />
+    <Compile Include="NearestNeighbourTextParser.cs" />
     <Compile Include="Parser.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="RTFResult.cs" />
+    <Compile Include="TabulaParser.cs" />
     <Compile Include="WaitForm.cs">
       <SubType>Form</SubType>
     </Compile>
