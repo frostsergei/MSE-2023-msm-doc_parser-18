@@ -81,7 +81,10 @@ namespace ParserGUI
                 WaitForm2.Show(this);
                 await Task.Run(() =>
                 {
-                    Result = Parser.PDFToString(ofd.FileName);
+                    IParser parser = new TabulaParser(ofd.FileName, new NearestNeighbourTextParser());
+                    parser.Parse();
+                    RTFResult result = new RTFResult(parser);
+                    Result = result.Serialize();
                 }
                 );
                 RTBOutput.Text = Result;
