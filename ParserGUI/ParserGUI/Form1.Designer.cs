@@ -203,6 +203,7 @@ namespace ParserGUI
             this.Name = "Window";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
             this.Text = "DocParser";
+            this.LocationChanged += new System.EventHandler(this.Window_LocationChanged);
             this.TopPanel.ResumeLayout(false);
             this.ResumeLayout(false);
             this.PerformLayout();

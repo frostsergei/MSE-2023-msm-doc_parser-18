@@ -42,7 +42,7 @@ namespace ParserGUI
             if (ofd.FileName != "")
             {
                 SaveFileDialog sfd = new SaveFileDialog();
-                sfd.Filter = "XML|*.xml";
+                sfd.Filter = "Data base file|*.mdb|XML|*.xml";
                 sfd.Title = "Сохранить результат";
                 sfd.ShowDialog();
 
@@ -77,24 +77,21 @@ namespace ParserGUI
         {
             if (ofd.FileName != "")
             {
-                WaitForm2.Show();
+                //WaitForm WaitForm2 = new WaitForm();
+                WaitForm2.Show(this);
                 WaitForm2.Refresh();
-            }
-            await Task.Run(() =>
-            {
-                if (ofd.FileName != "")
+                await Task.Run(() =>
                 {
-                    BFClicked = true;
                     Result = Parser.PDFToString(ofd.FileName);
                 }
-                else
-                {
-                    MessageBox.Show("Вы не выбрали файл!");
-                }
+                );
+                RTBOutput.Text = Result;
+                WaitForm2.Close();
             }
-            );
-            WaitForm2.Close();
-            RTBOutput.Text = Result;
+            else
+            {
+                MessageBox.Show("Вы не выбрали файл!");
+            }
         }
 
         private void RTBOutput_TextChanged(object sender, EventArgs e)
@@ -104,7 +101,21 @@ namespace ParserGUI
                     RTBOutput.BackColor = SystemColors.Window;
                 }
         }
+
+        private Point m_PreviousLocation = new Point(int.MinValue, int.MinValue);
+
+        private void Window_LocationChanged(object sender, EventArgs e)
+        {
+            if (m_PreviousLocation.X != int.MinValue) 
+                WaitForm2.Location = new Point(
+                      WaitForm2.Location.X + Location.X - m_PreviousLocation.X,
+                      WaitForm2.Location.Y + Location.Y - m_PreviousLocation.Y
+                    );
+
+            m_PreviousLocation = Location;
+        }
     }
     }
+    
     
 
