@@ -20,7 +20,7 @@ namespace ParserGUI
 
         OpenFileDialog ofd = new OpenFileDialog();
         string Result;
-        WaitForm WaitForm2 = new WaitForm();
+        WaitForm WaitForm2;
 
         private void TextBoxChoose_TextChanged(object sender, EventArgs e)
         {
@@ -77,7 +77,7 @@ namespace ParserGUI
         {
             if (ofd.FileName != "")
             {
-                //WaitForm WaitForm2 = new WaitForm();
+                WaitForm2 = new WaitForm();
                 WaitForm2.Show(this);
                 WaitForm2.Refresh();
                 await Task.Run(() =>
