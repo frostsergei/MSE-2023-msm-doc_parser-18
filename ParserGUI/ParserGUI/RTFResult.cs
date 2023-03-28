@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Tabula;
 
-namespace ParserGUI
+namespace ParserCore
 {
     internal class RTFResult
     {
@@ -24,7 +24,8 @@ namespace ParserGUI
             for (int i = 0; i < table.RowCount; i++)
             {
                 _stringBuilder.Append(@"\trowd ");
-                var nonEmptyCells = table.Rows[i].Where(cell => cell.GetText() != "");
+                var nonEmptyCells = new List<Cell>(table.Rows[i]);
+                while(nonEmptyCells.Count() > 0 && nonEmptyCells.Last().GetText()=="") nonEmptyCells.RemoveAt(nonEmptyCells.Count - 1);
                 for (int j = 0; j < nonEmptyCells.Count(); j++)
                 {
                     _stringBuilder.Append(@"\cellx" + (j + 1) * (10000 / nonEmptyCells.Count()));
@@ -36,6 +37,7 @@ namespace ParserGUI
                     _stringBuilder.Append(@"\cell ");
                 }
                 _stringBuilder.Append(@"\row ");
+               
             }
         }
 
