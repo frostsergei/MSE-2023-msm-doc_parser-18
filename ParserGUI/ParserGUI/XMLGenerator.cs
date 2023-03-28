@@ -3,33 +3,56 @@ using System.Text;
 using System.IO;
 using System.Xml;
 using System.Linq;
+using Tabula;
+using System.Data;
+using System;
 
 namespace ParserGUI
 {
     class XMLGenerator
     {
-        static public void ToFile(string parse_result, FileStream fout)
+        static public void ToFile(List<Table> tables, FileStream fout)
         {
             XmlWriterSettings settings = new XmlWriterSettings();
             settings.Indent = true; settings.IndentChars = "\t";
             using(XmlWriter writer = XmlWriter.Create(fout, settings))
-                WriteParseResult(parse_result, writer);
+                WriteParseResult(tables, writer);
         }
         
-        static private void WriteParseResult(string parse_result, XmlWriter writer)
+        static private void WriteParseResult(List<Table> tables, XmlWriter writer)
         {
-            writer.WriteStartElement("text");
-            string[] lines = parse_result.Split('\n');
-            foreach(string l in lines)
-            {
-                string l_out = l.Replace("\r", "");
-                IEnumerable<char> c_out = l_out.Normalize(NormalizationForm.FormD);
-                l_out = new string(c_out.Where(c => !char.IsControl(c)).ToArray());
-                if(l_out == "")
-                    continue;
-                writer.WriteStartElement("line");
-                writer.WriteString(l_out);
-                writer.WriteEndElement();
+            writer.WriteStartElement("parameters");
+            foreach(Table table in tables){
+                bool no_table_yet = true;
+                foreach(IReadOnlyList<Cell> row in table.Rows){
+                    bool no_row_yet = true;
+                    foreach(Cell cell in row){
+                        bool no_text_yet = true;
+                        foreach(TextChunk chunk in cell.TextElements){
+                            foreach(TextElement elem in chunk.TextElements){
+                                if(no_table_yet){
+                                    no_table_yet = false;
+                                    writer.WriteStartElement("table");
+                                }
+                                if(no_row_yet){
+                                    no_row_yet = false;
+                                    writer.WriteStartElement("row");
+                                }
+                                if(no_text_yet){
+                                    no_text_yet = false;
+                                    writer.WriteStartElement("cell");
+                                }
+                                writer.WriteString(elem.GetText());
+                            }
+                        }
+                        if(!no_text_yet)
+                            writer.WriteEndElement();
+                    }
+                    if(!no_row_yet)
+                        writer.WriteEndElement();
+                }
+                if(!no_table_yet)
+                    writer.WriteEndElement(); 
             }
             writer.WriteEndElement();
         }
