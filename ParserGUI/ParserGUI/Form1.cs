@@ -20,6 +20,7 @@ namespace ParserGUI
 
         OpenFileDialog ofd = new OpenFileDialog();
         string Result;
+        IParser parser;
         WaitForm WaitForm2 = new WaitForm();
 
         private void TextBoxChoose_TextChanged(object sender, EventArgs e)
@@ -50,7 +51,8 @@ namespace ParserGUI
                 {
                     TextBoxSave.Text = sfd.FileName;
                     FileStream NewFile = File.OpenWrite(sfd.FileName);
-                    XMLGenerator.ToFile(Result, NewFile);
+                    NewFile.SetLength(0); // C# почему-то не стирает содержимое уже существующих файлов, если они открыты для записи
+                    XMLGenerator.ToFile(parser.GetTables(), NewFile);
                     NewFile.Close();
                     MessageBox.Show("Файл успешно сохранен!");
                 }
@@ -84,7 +86,7 @@ namespace ParserGUI
             {
                 if (ofd.FileName != "")
                 {
-                    IParser parser = new TabulaParser(ofd.FileName, new NearestNeighbourTextParser());
+                    parser = new TabulaParser(ofd.FileName, new NearestNeighbourTextParser());
                     parser.Parse();
                     RTFResult result = new RTFResult(parser);
                     Result = result.Serialize();
