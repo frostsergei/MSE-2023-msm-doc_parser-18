@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using UglyToad.PdfPig.Content;
 
-namespace ParserGUI
+namespace ParserCore
 {
     public interface ITextParser
     {

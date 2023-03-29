@@ -8,6 +8,7 @@ using System.Text;
 using System.IO;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using ParserCore;
 
 namespace ParserGUI
 {
@@ -21,6 +22,7 @@ namespace ParserGUI
         OpenFileDialog ofd = new OpenFileDialog();
         string Result;
         WaitForm WaitForm2;
+        IParser parser;
 
         private void TextBoxChoose_TextChanged(object sender, EventArgs e)
         {
@@ -50,7 +52,8 @@ namespace ParserGUI
                 {
                     TextBoxSave.Text = sfd.FileName;
                     FileStream NewFile = File.OpenWrite(sfd.FileName);
-                    XMLGenerator.ToFile(Result, NewFile);
+                    NewFile.SetLength(0); // C# почему-то не стирает содержимое уже существующих файлов, если они открыты для записи
+                    XMLGenerator.ToFile(parser.GetTables(), NewFile);
                     NewFile.Close();
                     MessageBox.Show("Файл успешно сохранен!");
                 }
@@ -77,11 +80,12 @@ namespace ParserGUI
         {
             if (ofd.FileName != "")
             {
-                WaitForm2 = new WaitForm();
+				        WaitForm2 = new WaitForm();
                 WaitForm2.Show(this);
                 await Task.Run(() =>
-                {
-                    IParser parser = new TabulaParser(ofd.FileName, new NearestNeighbourTextParser());
+				        {
+					          DbService dbService = new DbService("YOUR .mdb FILE");
+					          parser = new TabulaParser(ofd.FileName, new NearestNeighbourTextParser());
                     parser.Parse();
                     RTFResult result = new RTFResult(parser);
                     Result = result.Serialize();
@@ -99,9 +103,9 @@ namespace ParserGUI
         private void RTBOutput_TextChanged(object sender, EventArgs e)
         {
             if (RTBOutput.ReadOnly)
-                {
-                    RTBOutput.BackColor = SystemColors.Window;
-                }
+            {
+                RTBOutput.BackColor = SystemColors.Window;
+            }
         }
 
         private Point m_PreviousLocation = new Point(int.MinValue, int.MinValue);
@@ -122,6 +126,5 @@ namespace ParserGUI
         }
     }
 }
-    
-    
+
 
