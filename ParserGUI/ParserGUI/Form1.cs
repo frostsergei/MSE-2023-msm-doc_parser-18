@@ -21,8 +21,8 @@ namespace ParserGUI
 
         OpenFileDialog ofd = new OpenFileDialog();
         string Result;
+        WaitForm WaitForm2;
         IParser parser;
-        WaitForm WaitForm2 = new WaitForm();
 
         private void TextBoxChoose_TextChanged(object sender, EventArgs e)
         {
@@ -44,7 +44,7 @@ namespace ParserGUI
             if (ofd.FileName != "")
             {
                 SaveFileDialog sfd = new SaveFileDialog();
-                sfd.Filter = "XML|*.xml";
+                sfd.Filter = "Data base file|*.mdb|XML|*.xml";
                 sfd.Title = "Сохранить результат";
                 sfd.ShowDialog();
 
@@ -80,27 +80,24 @@ namespace ParserGUI
         {
             if (ofd.FileName != "")
             {
-                WaitForm2.Show();
-                WaitForm2.Refresh();
-            }
-            await Task.Run(() =>
-            {
-                DbService dbService = new DbService("YOUR .mdb FILE");
-                if (ofd.FileName != "")
-                {
-                    parser = new TabulaParser(ofd.FileName, new NearestNeighbourTextParser());
+				        WaitForm2 = new WaitForm();
+                WaitForm2.Show(this);
+                await Task.Run(() =>
+				        {
+					          DbService dbService = new DbService("YOUR .mdb FILE");
+					          parser = new TabulaParser(ofd.FileName, new NearestNeighbourTextParser());
                     parser.Parse();
                     RTFResult result = new RTFResult(parser);
                     Result = result.Serialize();
                 }
-                else
-                {
-                    MessageBox.Show("Вы не выбрали файл!");
-                }
+                );
+                RTBOutput.Text = Result;
+                WaitForm2.Close();
             }
-            );
-            WaitForm2.Close();
-            RTBOutput.Rtf = Result;
+            else
+            {
+                MessageBox.Show("Вы не выбрали файл!");
+            }
         }
 
         private void RTBOutput_TextChanged(object sender, EventArgs e)
@@ -108,6 +105,23 @@ namespace ParserGUI
             if (RTBOutput.ReadOnly)
             {
                 RTBOutput.BackColor = SystemColors.Window;
+            }
+        }
+
+        private Point m_PreviousLocation = new Point(int.MinValue, int.MinValue);
+
+        private void Window_LocationChanged(object sender, EventArgs e)
+        {
+            if (WaitForm2 != null)
+            {
+                if (m_PreviousLocation.X != int.MinValue)
+                {
+                    WaitForm2.Location = new Point(
+                        WaitForm2.Location.X + Location.X - m_PreviousLocation.X,
+                        WaitForm2.Location.Y + Location.Y - m_PreviousLocation.Y
+                        );
+                }
+                m_PreviousLocation = Location;
             }
         }
     }
