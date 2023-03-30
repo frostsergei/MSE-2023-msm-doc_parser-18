@@ -19,7 +19,7 @@ jobs:
         cd MSE-2023-msm-doc_parser-18/ParserGUI/ParserGUI/
         pwd
         ls -l
-        ls -l ./ParserGUI
+
     - name: Setup .NET
       uses: actions/setup-dotnet@v3
       with:
