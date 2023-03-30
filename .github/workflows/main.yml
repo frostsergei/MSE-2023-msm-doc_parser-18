@@ -45,12 +45,12 @@ jobs:
 
       - name: Build Solution
         run: |
-          cd ParserGUI
+          
           msbuild /p:Configuration=Release ParserGUI.sln
 
       - name: Run Tests
         run: |
-          cd ParserGUI
+
           $testResults = 'TestResults.trx'
           dotnet test ParserGUI.sln /p:CollectCoverage=true /p:CoverletOutputFormat=cobertura /p:CoverletOutput='./' /p:MergeWith='./coverage.xml' /p:Exclude=\"[xunit.*]*\" /p:Logger:trx /p:ResultsDirectory:./ /p:ResultsFile:$testResults /p:Configuration=Release
           
