@@ -16,8 +16,9 @@ jobs:
     - name: Checkout Repository
       run: |
         git clone --branch dev https://github.com/moevm/MSE-2023-msm-doc_parser-18.git
-        cd MSE-2023-msm-doc_parser-18
+        cd MSE-2023-msm-doc_parser-18/ParserGUI/
         pwd
+        ls -l
     - name: Setup .NET
       uses: actions/setup-dotnet@v3
       with:
