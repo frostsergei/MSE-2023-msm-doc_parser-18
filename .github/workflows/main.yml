@@ -45,7 +45,9 @@ jobs:
 
       - name: Build Solution
         run: |
-          
+          (Get-Item .).FullName
+          Get-ChildItem
+          $env:Path += ";C:\Program Files\Microsoft Visual Studio\2022\Enterprise\MSBuild\Current\bin"
           msbuild /p:Configuration=Release ParserGUI.sln
 
       - name: Run Tests
