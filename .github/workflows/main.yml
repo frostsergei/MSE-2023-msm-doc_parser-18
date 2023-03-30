@@ -35,8 +35,8 @@ jobs:
           ref: dev
       - name: Setup .NET Framework
         uses: actions/setup-dotnet@v1
-        with:
-          dotnet-version: '4.8.x'
+#         with:
+#           dotnet-version: '4.8.x'
 
       - name: Restore NuGet Packages
         run: |
