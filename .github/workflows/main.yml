@@ -35,8 +35,8 @@ jobs:
           ref: dev
       - name: Setup .NET Framework
         uses: actions/setup-dotnet@v1
-#         with:
-#           dotnet-version: '4.8.x'
+        with:
+          dotnet-version: 5.0.x'
 
       - name: Restore NuGet Packages
         run: |
@@ -45,6 +45,9 @@ jobs:
 
       - name: Build Solution
         run: |
+          (Get-Item .).FullName
+          Get-ChildItem
+          cd ParserGUI
           (Get-Item .).FullName
           Get-ChildItem
           $env:Path += ";C:\Program Files\Microsoft Visual Studio\2022\Enterprise\MSBuild\Current\bin"
