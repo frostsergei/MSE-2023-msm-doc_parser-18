@@ -112,7 +112,7 @@ namespace ParserCore
                     letter.GlyphRectangle.Right <= cell.Right;
         }
 
-        private List<Table> ParsePage(int pageNumber)
+        public List<Table> ParsePage(int pageNumber)
         {
             PageArea page = _objectExtractor.Extract(pageNumber);
             ITableFilter tableFilter = new SimpleTableFilter(page);
