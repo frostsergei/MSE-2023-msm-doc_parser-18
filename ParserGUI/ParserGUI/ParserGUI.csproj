@@ -121,12 +121,12 @@
     <Compile Include="Form1.Designer.cs">
       <DependentUpon>Form1.cs</DependentUpon>
     </Compile>
+	<Compile Include="DbService.cs" />
     <Compile Include="ITableFilter.cs" />
     <Compile Include="ITextParser.cs" />
     <Compile Include="IParser.cs" />
     <Compile Include="NearestNeighbourTextParser.cs" />
     <Compile Include="Parser.cs" />
-    <Compile Include="ParserObjectExtractor.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="RTFResult.cs" />
