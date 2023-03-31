@@ -14,5 +14,6 @@ namespace ParserCore
         List<Table> GetTables();
         Table GetTable(int tableNumber);
         string GetCellText(Table table, Cell cell);
+        List<Table> ParsePage(int pageNumber);
     }
 }
