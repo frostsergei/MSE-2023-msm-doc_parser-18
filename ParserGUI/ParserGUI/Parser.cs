@@ -6,11 +6,28 @@ using ParserGUI;
 using System.IO;
 using System;
 using System.Xml;
+using System.Linq;
+using static UglyToad.PdfPig.Core.PdfSubpath;
 
 namespace ParserCore
 {
     public class Parser
     {
+        private List<int> _pageNumbers;
+
+        public Parser(string filename)
+        {
+            var document = PdfDocument.Open(filename);
+            ParseContent(document);
+        }
+
+        public void ParseContent(PdfDocument document)
+        {
+            var documentContentParser = new DocumentContentParser(document);
+            _pageNumbers = documentContentParser.Parse();
+        }
+
+      
         public string ParseSimpleTable(TabulaParser parser, List<int> page_numbers)
         {
             MemoryStream str = new MemoryStream();
