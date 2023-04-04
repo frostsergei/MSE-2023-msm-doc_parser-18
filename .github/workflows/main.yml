@@ -42,14 +42,7 @@ jobs:
         run: |
           cd ParserGUI
           nuget restore
-      - name: Update version
-        id: assembly-version
-        run: |
-          $version = $env:version
-          $assemblyInfo = Get-Content $env:VERSION_FILE
-          $assemblyInfo = $assemblyInfo -replace '(\d+)\.(\d+)\.(\d+)\.(\d+)', "`$1.`$2.`$3.$($version + 1)"
-          Set-Content $env:VERSION_FILE $assemblyInfo
-          echo "::set-output name=version::$($version + 1)"
+
       - name: Build Solution
         run: |
           (Get-Item .).FullName
@@ -74,18 +67,38 @@ jobs:
 #           testResultsFiles: 'ParserGUI/TestResults*.trx'
 #           type: VSTest
 #           name: 'MySolution Tests'
-      - name: Create release
-        uses: actions/create-release@v1
+#       - name: Create release
+#         uses: actions/create-release@v1
+#         with:
+#           tag_name: v${{ steps.assembly-version.outputs.version }}
+#           release_name: Release v${{ steps.assembly-version.outputs.version }}
+#           body: |
+#             Changes in this release:
+#             - ...
+#           draft: false
+#           prerelease: false
+#         env:
+#           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set release version
+        id: assembly-version
+        uses: mjancarik/Assembly-Info-Setter-GitHub-Action@v1.1.0
         with:
-          tag_name: v${{ steps.assembly-version.outputs.version }}
-          release_name: Release v${{ steps.assembly-version.outputs.version }}
-          body: |
-            Changes in this release:
-            - ...
-          draft: false
-          prerelease: false
+          directory: './MyProject'
+          versionNumber: 'increment'
+
+      - name: Create release
+        id: create_release
+        uses: actions/create-release@v1.0.0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ steps.assembly-version.outputs.version }}
+          release_name: Release ${{ steps.assembly-version.outputs.version }}
+          body: |
+            Release notes go here.
+          draft: false
+          prerelease: false
 
       - name: Upload Asset
         id: upload-release-asset
