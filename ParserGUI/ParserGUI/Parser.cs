@@ -1,17 +1,13 @@
 using UglyToad.PdfPig;
 using UglyToad.PdfPig.Content;
 using System.Collections.Generic;
-using ParserCore;
 using System;
 using System.IO;
 using System.Xml;
 using Tabula;
-using ParserGUI;
-using System.IO;
-using System;
-using System.Xml;
 using System.Linq;
-using static UglyToad.PdfPig.Core.PdfSubpath;
+using System.Text;
+using UglyToad.PdfPig.DocumentLayoutAnalysis.WordExtractor;
 
 namespace ParserCore
 {
