@@ -75,7 +75,6 @@ jobs:
         with:
           tag_name: v1.0.0
           release_name: Release v1.0.0
-          body: First Release of Our App ParserGUI
           draft: false
           prerelease: false
 
