@@ -1,13 +1,17 @@
-﻿using UglyToad.PdfPig;
+using UglyToad.PdfPig;
 using UglyToad.PdfPig.Content;
 using System.Collections.Generic;
-using Tabula;
-using UglyToad.PdfPig.DocumentLayoutAnalysis.WordExtractor;
+using ParserCore;
+using System;
 using System.IO;
 using System.Xml;
+using Tabula;
+using ParserGUI;
+using System.IO;
 using System;
+using System.Xml;
 using System.Linq;
-using System.Text;
+using static UglyToad.PdfPig.Core.PdfSubpath;
 
 namespace ParserCore
 {
@@ -36,26 +40,34 @@ namespace ParserCore
             XmlWriter writer = XmlWriter.Create(str, settings);
 
             writer.WriteStartElement("TagList");
-            foreach(int page_num in page_numbers){
+            foreach (int page_num in page_numbers)
+            {
                 List<Table> tables = parser.ParsePage(page_num);
-                foreach(Table table in tables){
-                     foreach(IReadOnlyList<Cell> row in table.Rows){
-                        bool wrote_row = false;  
-                        for(int i = 0; i < row.Count; ++i){
+                foreach (Table table in tables)
+                {
+                    foreach (IReadOnlyList<Cell> row in table.Rows)
+                    {
+                        bool wrote_row = false;
+                        for (int i = 0; i < row.Count; ++i)
+                        {
                             Cell cell = row[i];
                             string cell_text = "";
-                            foreach(TextChunk chunk in cell.TextElements){
-                                foreach(TextElement elem in chunk.TextElements){
+                            foreach (TextChunk chunk in cell.TextElements)
+                            {
+                                foreach (TextElement elem in chunk.TextElements)
+                                {
                                     cell_text += elem.GetText();
                                 }
                             }
-                            if(cell_text.Length == 0)
+                            if (cell_text.Length == 0)
                                 continue;
-                            if(!wrote_row){
+                            if (!wrote_row)
+                            {
                                 writer.WriteStartElement("Row");
                                 wrote_row = true;
                             }
-                            switch(i){
+                            switch (i)
+                            {
                                 case 0: // Номер элемента списка
                                     writer.WriteStartAttribute("Param");
                                     writer.WriteRaw(cell_text);
@@ -73,9 +85,9 @@ namespace ParserCore
                                     break;
                             }
                         }
-                        if(wrote_row)
+                        if (wrote_row)
                             writer.WriteEndElement();
-                     }
+                    }
                 }
             }
             writer.WriteEndElement();
