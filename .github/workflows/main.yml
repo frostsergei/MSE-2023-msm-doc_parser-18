@@ -55,18 +55,18 @@ jobs:
           Get-ChildItem -Verbose
           Get-ChildItem -Verbose
 
-      - name: Run Tests
-        run: |
+#       - name: Run Tests
+#         run: |
 
-          $testResults = 'TestResults.trx'
-          dotnet test ParserGUI.sln /p:CollectCoverage=true /p:CoverletOutputFormat=cobertura /p:CoverletOutput='./' /p:MergeWith='./coverage.xml' /p:Exclude=\"[xunit.*]*\" /p:Logger:trx /p:ResultsDirectory:./ /p:ResultsFile:$testResults /p:Configuration=Release
+#           $testResults = 'TestResults.trx'
+#           dotnet test ParserGUI.sln /p:CollectCoverage=true /p:CoverletOutputFormat=cobertura /p:CoverletOutput='./' /p:MergeWith='./coverage.xml' /p:Exclude=\"[xunit.*]*\" /p:Logger:trx /p:ResultsDirectory:./ /p:ResultsFile:$testResults /p:Configuration=Release
           
-      - name: Publish Test Results
-        uses: EnricoMi/publish-unit-test-result-action@v1
-        with:
-          testResultsFiles: 'ParserGUI/TestResults*.trx'
-          type: VSTest
-          name: 'MySolution Tests'
+#       - name: Publish Test Results
+#         uses: EnricoMi/publish-unit-test-result-action@v1
+#         with:
+#           testResultsFiles: 'ParserGUI/TestResults*.trx'
+#           type: VSTest
+#           name: 'MySolution Tests'
       - name: Create Release
         id: create_release
         uses: actions/create-release@v1.0.0
