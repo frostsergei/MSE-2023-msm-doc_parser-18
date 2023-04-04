@@ -52,6 +52,8 @@ jobs:
           Get-ChildItem
           $env:Path += ";C:\Program Files\Microsoft Visual Studio\2022\Enterprise\MSBuild\Current\bin"
           msbuild /p:Configuration=Release ParserGUI.sln
+          Get-ChildItem -Verbose
+          Get-ChildItem -Verbose
 
       - name: Run Tests
         run: |
@@ -65,3 +67,24 @@ jobs:
           testResultsFiles: 'ParserGUI/TestResults*.trx'
           type: VSTest
           name: 'MySolution Tests'
+      - name: Create Release
+        id: create_release
+        uses: actions/create-release@v1.0.0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: v1.0.0
+          release_name: Release v1.0.0
+          draft: false
+          prerelease: false
+
+      - name: Upload Asset
+        id: upload-release-asset
+        uses: actions/upload-release-asset@v1.0.1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: path/to/MyApp.exe
+          asset_name: MyApp.exe
+          asset_content_type: application/x-msdownload
