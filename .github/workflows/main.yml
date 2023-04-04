@@ -42,7 +42,14 @@ jobs:
         run: |
           cd ParserGUI
           nuget restore
-
+      - name: Update version
+        id: assembly-version
+        run: |
+          $version = $env:version
+          $assemblyInfo = Get-Content $env:VERSION_FILE
+          $assemblyInfo = $assemblyInfo -replace '(\d+)\.(\d+)\.(\d+)\.(\d+)', "`$1.`$2.`$3.$($version + 1)"
+          Set-Content $env:VERSION_FILE $assemblyInfo
+          echo "::set-output name=version::$($version + 1)"
       - name: Build Solution
         run: |
           (Get-Item .).FullName
@@ -67,16 +74,18 @@ jobs:
 #           testResultsFiles: 'ParserGUI/TestResults*.trx'
 #           type: VSTest
 #           name: 'MySolution Tests'
-      - name: Create Release
-        id: create_release
-        uses: actions/create-release@v1.0.0
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Create release
+        uses: actions/create-release@v1
         with:
-          tag_name: v1.0.0
-          release_name: Release v1.0.0
+          tag_name: v${{ steps.assembly-version.outputs.version }}
+          release_name: Release v${{ steps.assembly-version.outputs.version }}
+          body: |
+            Changes in this release:
+            - ...
           draft: false
           prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Upload Asset
         id: upload-release-asset
