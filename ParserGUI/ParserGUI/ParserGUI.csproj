@@ -115,13 +115,15 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Data.cs" />
+    <Compile Include="DocumentContentParser.cs" />
     <Compile Include="Form1.cs">
       <SubType>Form</SubType>
     </Compile>
     <Compile Include="Form1.Designer.cs">
       <DependentUpon>Form1.cs</DependentUpon>
     </Compile>
-	<Compile Include="DbService.cs" />
+    <Compile Include="DbService.cs" />
     <Compile Include="ITableFilter.cs" />
     <Compile Include="ITextParser.cs" />
     <Compile Include="IParser.cs" />
