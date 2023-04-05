@@ -18,6 +18,10 @@ namespace ParserCore
             settings.Indent = true; settings.IndentChars = "\t";
             XmlWriter writer = XmlWriter.Create(str, settings);
 
+            List<string>[] header_sentences = new List<string>[]{new List<string>{"Номер","элемента","списка" },
+                                                                 new List<string>{"Значение", "элемента", "адрес", "и", "признаки", "вывода", "на", "печать"},
+                                                                 new List<string>{"Наименование", "элемента", "и", "комментарии"} };
+
             writer.WriteStartElement("TagList");
             foreach(int page_num in page_numbers){
                 List<Table> tables = parser.ParsePage(page_num);
@@ -34,6 +38,36 @@ namespace ParserCore
                             }
                             if(cell_text.Length == 0)
                                 continue;
+                            string[] cell_words = cell_text.Split(' ');
+
+                            int word_i = 0;
+                            bool row_is_header = true; bool has_valid_header_words = false;
+                            foreach(string word in cell_words){
+                                if(word.Length == 0 || !char.IsLetter(word[0]))
+                                    continue;
+                                has_valid_header_words = true;
+                                bool matches_header = false;
+                                foreach(List<string> sentence in header_sentences){
+                                    if(word_i >= sentence.Count)
+                                        continue;
+                                    if(sentence[word_i] == word){
+                                        matches_header = true;
+                                        break;
+                                    }
+                                }
+                                if(!matches_header){
+                                    row_is_header = false;
+                                    break;
+                                }
+                                ++word_i;
+                            }
+                            if(row_is_header && has_valid_header_words)
+                                break;
+
+                            cell_text = cell_text.Trim();
+                            if(cell_text.Length == 0)
+                                continue;
+
                             if(!wrote_row){
                                 writer.WriteStartElement("Row");
                                 wrote_row = true;
