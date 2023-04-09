@@ -8,6 +8,7 @@ using Tabula;
 using System.Linq;
 using System.Text;
 using UglyToad.PdfPig.DocumentLayoutAnalysis.WordExtractor;
+using System.Reflection;
 
 namespace ParserCore
 {
@@ -28,14 +29,14 @@ namespace ParserCore
         }
 
       
-        public string ParseSimpleTable(TabulaParser parser, List<int> page_numbers)
+        public Data ParseSimpleTable(TabulaParser parser, List<int> page_numbers)
         {
-            MemoryStream str = new MemoryStream();
-            XmlWriterSettings settings = new XmlWriterSettings();
-            settings.Indent = true; settings.IndentChars = "\t";
-            XmlWriter writer = XmlWriter.Create(str, settings);
+            Data dat = new Data();
 
-            writer.WriteStartElement("TagList");
+            List<string>[] header_sentences = new List<string>[]{new List<string>{"Номер","элемента","списка" },
+                                                                 new List<string>{"Значение", "элемента", "адрес", "и", "признаки", "вывода", "на", "печать"},
+                                                                 new List<string>{"Наименование", "элемента", "и", "комментарии"} };
+
             foreach (int page_num in page_numbers)
             {
                 List<Table> tables = parser.ParsePage(page_num);
@@ -43,6 +44,7 @@ namespace ParserCore
                 {
                     foreach (IReadOnlyList<Cell> row in table.Rows)
                     {
+                        Data.Parameter param = new Data.Parameter();
                         bool wrote_row = false;
                         for (int i = 0; i < row.Count; ++i)
                         {
@@ -57,41 +59,57 @@ namespace ParserCore
                             }
                             if (cell_text.Length == 0)
                                 continue;
-                            if (!wrote_row)
-                            {
-                                writer.WriteStartElement("Row");
-                                wrote_row = true;
+                            string[] cell_words = cell_text.Split(' ');
+
+                            int word_i = 0;
+                            bool row_is_header = true; bool has_valid_header_words = false;
+                            foreach(string word in cell_words){
+                                if(word.Length == 0 || !char.IsLetter(word[0]))
+                                    continue;
+                                has_valid_header_words = true;
+                                bool matches_header = false;
+                                foreach(List<string> sentence in header_sentences){
+                                    if(word_i >= sentence.Count)
+                                        continue;
+                                    if(sentence[word_i] == word){
+                                        matches_header = true;
+                                        break;
+                                    }
+                                }
+                                if(!matches_header){
+                                    row_is_header = false;
+                                    break;
+                                }
+                                ++word_i;
                             }
+                            if(row_is_header && has_valid_header_words)
+                                break;
+
+                            cell_text = cell_text.Trim();
+                            if(cell_text.Length == 0)
+                                continue;
+
+                            if(!wrote_row)
+                                wrote_row = true;
                             switch (i)
                             {
                                 case 0: // Номер элемента списка
-                                    writer.WriteStartAttribute("Param");
-                                    writer.WriteRaw(cell_text);
-                                    writer.WriteEndAttribute();
+                                    param.Name = cell_text;
                                     break;
                                 case 1:
-                                    writer.WriteStartAttribute("Address");
-                                    writer.WriteRaw(cell_text);
-                                    writer.WriteEndAttribute();
+                                    // Адрес параметра, не используется
                                     break;
                                 case 2:
-                                    writer.WriteStartAttribute("Description");
-                                    writer.WriteRaw(cell_text);
-                                    writer.WriteEndAttribute();
+                                    param.Description = cell_text;
                                     break;
                             }
                         }
-                        if (wrote_row)
-                            writer.WriteEndElement();
+                        if(wrote_row)
+                            dat.WriteElem(param);
                     }
                 }
             }
-            writer.WriteEndElement();
-
-            writer.Flush();
-            str.Position = 0;
-            StreamReader str_rd = new StreamReader(str);
-            return str_rd.ReadToEnd();
+            return dat;
         }
 
 
