@@ -137,15 +137,11 @@ namespace ParserCore
             }
         }
 
-        public string ParseStringParams(List<int> pages_numbers, string doc_name)
+        public Data ParseStringParams(List<int> pages_numbers, string doc_name)
         {
+            Data data = new Data();
             const double column_margin = 10;
-            MemoryStream str = new MemoryStream();
-            XmlWriterSettings settings = new XmlWriterSettings();
-            settings.Indent = true; settings.IndentChars = "\t";
-            XmlWriter writer = XmlWriter.Create(str, settings);
 
-            writer.WriteStartElement("TagList");
             foreach (int page_num in pages_numbers)
             {
                 PdfDocument doc = PdfDocument.Open(doc_name);
@@ -231,22 +227,15 @@ namespace ParserCore
                     foreach (Word w in row[0].words)
                     {
                         string param = w.Text.Replace(",", "");
-                        writer.WriteStartElement("Row");
-                        writer.WriteStartAttribute("Param");
-                        writer.WriteString(param);
-                        writer.WriteEndAttribute();
-                        writer.WriteStartAttribute("Description");
-                        writer.WriteString(description);
-                        writer.WriteEndAttribute();
-                        writer.WriteEndElement();
+                        Data.Parameter parameter = new Data.Parameter();
+                        parameter.Name = param;
+                        parameter.Range = "";
+                        parameter.Description = description;
+                        data.WriteElem(parameter);
                     }
                 }
             }
-            writer.WriteEndElement();
-            writer.Flush();
-            str.Position = 0;
-            StreamReader str_rd = new StreamReader(str);
-            return str_rd.ReadToEnd();
+            return data;
         }
 
         private class DocumentContentParser
