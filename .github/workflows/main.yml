@@ -90,6 +90,7 @@ jobs:
           release_name: Release ${{ github.ref }}
           draft: false
           prerelease: false
+          auto_increment_type: path
 
       - name: Upload Asset
         id: upload-release-asset
