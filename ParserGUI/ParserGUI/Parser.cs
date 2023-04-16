@@ -9,17 +9,22 @@ using System.Linq;
 using System.Text;
 using UglyToad.PdfPig.DocumentLayoutAnalysis.WordExtractor;
 using System.Reflection;
+using System.Runtime.InteropServices;
+using UglyToad.PdfPig.Graphics.Colors;
+using System.Drawing;
+using UglyToad.PdfPig.Graphics;
 
 namespace ParserCore
 {
     public class Parser
     {
         private List<int> _pageNumbers;
+        private PdfDocument _document;
 
         public Parser(string filename)
         {
-            var document = PdfDocument.Open(filename);
-            ParseContent(document);
+            _document = PdfDocument.Open(filename, new ParsingOptions() { ClipPaths = true });
+            ParseContent(_document);
         }
 
         public void ParseContent(PdfDocument document)
@@ -27,6 +32,80 @@ namespace ParserCore
             var documentContentParser = new DocumentContentParser(document);
             _pageNumbers = documentContentParser.Parse();
         }
+
+        public Data ParseLineParams(List<int> page_numbers)
+        {
+            Data data = new Data();
+            Func<PdfPath, bool> isVertical = path => { var rect = path[0].GetBoundingRectangle(); return rect?.Width * 3 < rect?.Height; };
+            Func<PdfPath, bool> isBlack = path => { var rgb = path.FillColor?.ToRGBValues(); if (rgb == null) return false; return rgb?.r != 1 && rgb?.g != 1 && rgb?.b != 1; };
+            Func<Letter, Tuple<PointF, PointF>, bool> isNearLine = (letter, line) =>
+            {
+                return letter.GlyphRectangle.Top <= line.Item2.Y &&
+                letter.GlyphRectangle.Bottom >= line.Item1.Y;
+            };
+            Func<Tuple<PointF, PointF>, Tuple<PointF, PointF>, bool> isIntersecting = (line1, line2) =>
+            {
+                return (line1.Item1.Y >= line2.Item1.Y - 1 && line1.Item1.Y <= line2.Item2.Y + 1)
+                || (line1.Item2.Y >= line2.Item1.Y - 1 && line1.Item2.Y <= line2.Item2.Y + 1);
+            };
+            Func<PdfPath, Tuple<PointF, PointF>> toLine = path => {
+                var rect = path[0].GetBoundingRectangle();
+                return new Tuple<PointF, PointF>(new PointF((float)rect?.Left, (float)rect?.Bottom), new PointF((float)rect?.Left, (float)rect?.Top));
+            };
+
+            foreach (var pageNum in page_numbers)
+            {
+                var page = _document.GetPage(pageNum);
+                var paths = page.ExperimentalAccess.Paths.ToList();               
+                var lines = paths.Where(path =>  isVertical(path)&& isBlack(path))
+                    .Select(toLine)
+                    .ToList();
+
+                List<Tuple<PointF, PointF>> lines2 = new List<Tuple<PointF, PointF>>();
+                List<Tuple<PointF, PointF>> remove = new List<Tuple<PointF, PointF>>();
+                for (int i = 0; i < lines.Count; i++)
+                {
+                    var intersecting = lines2.Where(x => isIntersecting(x, lines[i]));
+                    if(intersecting.Count() == 0)
+                    {
+                        lines2.Add(lines[i]);
+                    }
+                    else
+                    {
+                        remove.AddRange(intersecting);
+                    }
+                }
+                foreach (var line in remove)
+                    lines2.Remove(line);
+
+                var letters = page.Letters;
+                List<Tuple<string,string>> parameters = new List<Tuple<string, string>>();
+                foreach (var line in lines2)
+                {
+                    var lettersNearLine = letters.Where(letter => isNearLine(letter, line));
+                    var left =  lettersNearLine.Where(letter => letter.GlyphRectangle.Right < line.Item1.X).ToList();
+                    var right = lettersNearLine.Where(letter => letter.GlyphRectangle.Left > line.Item1.X).ToList();
+                    var name = GetText(left);
+                    var description = GetText(right);
+                    parameters.Add(new Tuple<string, string>(name, description));
+                }
+                foreach (var parameter in parameters)
+                {
+                    var names = parameter.Item1.Replace('\r','\n').Split('\n').Select(line=>line.Trim()).Where(line=>!string.IsNullOrEmpty(line));
+                    foreach(var name in names)
+                    {
+                        data.WriteElem(new Data.Parameter {
+                            Name = name,
+                            Description = parameter.Item2.Replace("\r","").Replace('\n',' ').Trim(),
+                            Range = ""
+                        });
+                    }
+                }
+
+            }
+            return data;
+        }
+
 
       
         public Data ParseSimpleTable(TabulaParser parser, List<int> page_numbers)
@@ -238,6 +317,72 @@ namespace ParserCore
             return data;
         }
 
+        private static string GetText(List<Letter> letters)
+        {
+            StringBuilder stringBuilder = new StringBuilder();
+            var wordExtractorOptions = new NearestNeighbourWordExtractor.NearestNeighbourWordExtractorOptions()
+            {
+                Filter = (pivot, candidate) =>
+                {
+                    if (string.IsNullOrWhiteSpace(candidate.Value))
+                    {
+                        return false;
+                    }
+
+                    var maxHeight = Math.Max(pivot.PointSize, candidate.PointSize);
+                    var minHeight = Math.Min(pivot.PointSize, candidate.PointSize);
+                    if (minHeight != 0 && maxHeight / minHeight > 2.0)
+                    {
+                        return false;
+                    }
+                    var pivotRgb = pivot.Color.ToRGBValues();
+                    var candidateRgb = candidate.Color.ToRGBValues();
+                    if (!pivotRgb.Equals(candidateRgb))
+                    {
+                        return false;
+                    }
+                    return true;
+                }
+            };
+            var wordExtractor = new NearestNeighbourWordExtractor(wordExtractorOptions);
+
+            var words = wordExtractor.GetWords(letters);
+
+            Word previous = null;
+            foreach (var word in words)
+            {
+                if (previous != null)
+                {
+                    var hasInsertedWhitespace = false;
+                    var bothNonEmpty = previous.Letters.Count > 0 && word.Letters.Count > 0;
+                    if (bothNonEmpty)
+                    {
+                        var prevLetter1 = previous.Letters[0];
+                        var currentLetter1 = word.Letters[0];
+
+                        var baselineGap = Math.Abs(prevLetter1.StartBaseLine.Y - currentLetter1.StartBaseLine.Y);
+
+                        if (baselineGap > 3)
+                        {
+                            hasInsertedWhitespace = true;
+                            stringBuilder.AppendLine();
+                        }
+                    }
+
+                    if (!hasInsertedWhitespace)
+                    {
+                        //stringBuilder.Append(" ");
+                    }
+                }
+
+                stringBuilder.Append(word.Text);
+
+                previous = word;
+            }
+            return stringBuilder.ToString();
+        }
+
+
         private class DocumentContentParser
         {
             struct ContentTableItem
@@ -278,7 +423,7 @@ namespace ParserCore
                     {
                         if (pageLines[i].ToLower().Contains(_contentTableTitle))
                         {
-                            _pageNumberOffset = pageNumber - ParsePageNumber(pageLines[0]);
+                            _pageNumberOffset = pageNumber - ParsePageNumber(pageLines[0],pageNumber);
                             _parsedLines.AddRange(pageLines.Where((line, index) => index > i));
                             found = true;
                             break;
@@ -290,7 +435,7 @@ namespace ParserCore
                 return pageNumber;
             }
 
-            private int ParsePageNumber(string line)
+            private int ParsePageNumber(string line,int page)
             {
                 var words = line.Split(' ').ToList();
                 var firstWord = words.First(word => !string.IsNullOrWhiteSpace(word));
@@ -301,9 +446,17 @@ namespace ParserCore
                 }
                 else
                 {
-                    var lastWord = words.Last(word => !string.IsNullOrWhiteSpace(word) && int.TryParse(word, out int _));
-                    if (lastWord == null) throw new Exception("Cannot find page number");
-                    pageNumber = int.Parse(lastWord);
+                    try
+                    {
+                        var lastWord = words.LastOrDefault(word => !string.IsNullOrWhiteSpace(word) && int.TryParse(word, out int _));
+                        if (lastWord == "") throw new Exception("Cannot find page number");
+                        pageNumber = int.Parse(lastWord);
+                    }
+                    catch(Exception ex)
+                    {
+                        Console.WriteLine(ex.Message);
+                        return page;
+                    }
                 }
                 return pageNumber;
             }
@@ -315,7 +468,7 @@ namespace ParserCore
 
             private ContentTableItem ParseContentTableItem(string line)
             {
-                var words = line.Split(' ').ToList();
+                var words = line.Split(' ','.').Where(word => !string.IsNullOrWhiteSpace(word)).ToList();
                 ContentTableItem item = new ContentTableItem()
                 {
                     Number = char.IsDigit(words[0][0]) ? words[0] : "",
@@ -409,71 +562,7 @@ namespace ParserCore
                 }
                 return pages.ToList();
             }
-
-            private string GetText(List<Letter> letters)
-            {
-                StringBuilder stringBuilder = new StringBuilder();
-                var wordExtractorOptions = new NearestNeighbourWordExtractor.NearestNeighbourWordExtractorOptions()
-                {
-                    Filter = (pivot, candidate) =>
-                    {
-                        if (string.IsNullOrWhiteSpace(candidate.Value))
-                        {
-                            return false;
-                        }
-
-                        var maxHeight = Math.Max(pivot.PointSize, candidate.PointSize);
-                        var minHeight = Math.Min(pivot.PointSize, candidate.PointSize);
-                        if (minHeight != 0 && maxHeight / minHeight > 2.0)
-                        {
-                            return false;
-                        }
-                        var pivotRgb = pivot.Color.ToRGBValues();
-                        var candidateRgb = candidate.Color.ToRGBValues();
-                        if (!pivotRgb.Equals(candidateRgb))
-                        {
-                            return false;
-                        }
-                        return true;
-                    }
-                };
-                var wordExtractor = new NearestNeighbourWordExtractor(wordExtractorOptions);
-
-                var words = wordExtractor.GetWords(letters);
-
-                Word previous = null;
-                foreach (var word in words)
-                {
-                    if (previous != null)
-                    {
-                        var hasInsertedWhitespace = false;
-                        var bothNonEmpty = previous.Letters.Count > 0 && word.Letters.Count > 0;
-                        if (bothNonEmpty)
-                        {
-                            var prevLetter1 = previous.Letters[0];
-                            var currentLetter1 = word.Letters[0];
-
-                            var baselineGap = Math.Abs(prevLetter1.StartBaseLine.Y - currentLetter1.StartBaseLine.Y);
-
-                            if (baselineGap > 3)
-                            {
-                                hasInsertedWhitespace = true;
-                                stringBuilder.AppendLine();
-                            }
-                        }
-
-                        if (!hasInsertedWhitespace)
-                        {
-                            //stringBuilder.Append(" ");
-                        }
-                    }
-
-                    stringBuilder.Append(word.Text);
-
-                    previous = word;
-                }
-                return stringBuilder.ToString();
-            }
+          
         }
     }
 }
