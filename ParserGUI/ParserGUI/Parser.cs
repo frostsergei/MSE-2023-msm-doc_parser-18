@@ -20,11 +20,22 @@ namespace ParserCore
     {
         private List<int> _pageNumbers;
         private PdfDocument _document;
+        private TabulaParser tabparser;
+
+        private Data data = new Data();
+        public Data GetData() { return data; }
 
         public Parser(string filename)
         {
+            tabparser = new TabulaParser(filename, new NearestNeighbourTextParser());
             _document = PdfDocument.Open(filename, new ParsingOptions() { ClipPaths = true });
             ParseContent(_document);
+
+            foreach(int pnum in _pageNumbers){
+                if(ParseSimpleTable(tabparser, new List<int>{pnum})){}
+                else if(ParseLineParams(new List<int>{pnum})){}
+                else if(ParseStringParams(new List<int>{pnum})){}
+            }
         }
 
         public void ParseContent(PdfDocument document)
@@ -33,9 +44,9 @@ namespace ParserCore
             _pageNumbers = documentContentParser.Parse();
         }
 
-        public Data ParseLineParams(List<int> page_numbers)
+        public bool ParseLineParams(List<int> page_numbers)
         {
-            Data data = new Data();
+            bool got_params = false; 
             Func<PdfPath, bool> isVertical = path => { var rect = path[0].GetBoundingRectangle(); return rect?.Width * 3 < rect?.Height; };
             Func<PdfPath, bool> isBlack = path => { var rgb = path.FillColor?.ToRGBValues(); if (rgb == null) return false; return rgb?.r != 1 && rgb?.g != 1 && rgb?.b != 1; };
             Func<Letter, Tuple<PointF, PointF>, bool> isNearLine = (letter, line) =>
@@ -92,8 +103,10 @@ namespace ParserCore
                 foreach (var parameter in parameters)
                 {
                     var names = parameter.Item1.Replace('\r','\n').Split('\n').Select(line=>line.Trim()).Where(line=>!string.IsNullOrEmpty(line));
+                    if(names.Count() > 0)
+                        got_params = true;
                     foreach(var name in names)
-                    {
+                    { 
                         data.WriteElem(new Data.Parameter {
                             Name = name,
                             Description = parameter.Item2.Replace("\r","").Replace('\n',' ').Trim(),
@@ -103,19 +116,18 @@ namespace ParserCore
                 }
 
             }
-            return data;
+            return got_params;
         }
 
 
       
-        public Data ParseSimpleTable(TabulaParser parser, List<int> page_numbers)
+        public bool ParseSimpleTable(TabulaParser parser, List<int> page_numbers)
         {
-            Data dat = new Data();
-
             List<string>[] header_sentences = new List<string>[]{new List<string>{"Номер","элемента","списка" },
                                                                  new List<string>{"Значение", "элемента", "адрес", "и", "признаки", "вывода", "на", "печать"},
                                                                  new List<string>{"Наименование", "элемента", "и", "комментарии"} };
 
+            bool got_header = false;
             foreach (int page_num in page_numbers)
             {
                 List<Table> tables = parser.ParsePage(page_num);
@@ -161,7 +173,12 @@ namespace ParserCore
                                 }
                                 ++word_i;
                             }
-                            if(row_is_header && has_valid_header_words)
+                            if(row_is_header && has_valid_header_words){
+                                got_header = true; // Должно работать, не встречал подобных таблиц без заголовка на одной странице
+                                break;
+                            }
+
+                            if(!got_header)
                                 break;
 
                             cell_text = cell_text.Trim();
@@ -184,11 +201,11 @@ namespace ParserCore
                             }
                         }
                         if(wrote_row)
-                            dat.WriteElem(param);
+                            data.WriteElem(param);
                     }
                 }
             }
-            return dat;
+            return got_header;
         }
 
 
@@ -216,23 +233,24 @@ namespace ParserCore
             }
         }
 
-        public Data ParseStringParams(List<int> pages_numbers, string doc_name)
+        public bool ParseStringParams(List<int> pages_numbers) 
         {
-            Data data = new Data();
             const double column_margin = 10;
+            bool got_params = false; 
 
             foreach (int page_num in pages_numbers)
             {
-                PdfDocument doc = PdfDocument.Open(doc_name);
-                IEnumerable<Word> raw_words = doc.GetPage(page_num).GetWords();
+                IEnumerable<Word> raw_words = _document.GetPage(page_num).GetWords();
                 List<Word> words = new List<Word>(raw_words);
                 words.Sort(new WordComparer());
                 List<TableColumn> table_columns = new List<TableColumn>();
                 bool parse = false;
                 foreach (Word w in words)
                 {
-                    if (w.FontName.ToLower().Contains("bold"))
+                    if (w.FontName.ToLower().Contains("bold")){
                         parse = true;
+                        got_params = true;
+                    }
                     if (!parse)
                         continue;
                     bool create_new_col = true;
@@ -253,6 +271,10 @@ namespace ParserCore
                         table_columns.Add(new_col);
                     }
                 }
+
+                if(table_columns.Count < 2)
+                    return false;
+
                 for (int i = 2; i < table_columns.Count; i++)
                 {
                     table_columns[1].words.AddRange(table_columns[i].words);
@@ -314,7 +336,7 @@ namespace ParserCore
                     }
                 }
             }
-            return data;
+            return got_params;
         }
 
         private static string GetText(List<Letter> letters)
