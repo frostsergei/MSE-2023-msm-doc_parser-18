@@ -32,7 +32,8 @@ namespace ParserCore
             ParseContent(_document);
 
             foreach(int pnum in _pageNumbers){
-                if(ParseSimpleTable(tabparser, new List<int>{pnum})){}
+                if(ParseDoubleRowTable(tabparser, new List<int>{pnum})){}
+                else if(ParseSimpleTable(tabparser, new List<int>{pnum})){}
                 else if(ParseLineParams(new List<int>{pnum})){}
                 else if(ParseStringParams(new List<int>{pnum})){}
             }
@@ -208,6 +209,66 @@ namespace ParserCore
             return got_header;
         }
 
+        public bool ParseDoubleRowTable(TabulaParser parser, List<int> page_numbers)
+        {
+            bool got_params = false;
+            List<string> range_white_words = new List<string>{"Строка", "Опр.", "XXXX"};
+            foreach(int page_num in page_numbers)
+            {
+                List<Table> tables = parser.ParsePage(page_num);
+                foreach (Table table in tables)
+                {
+                    uint detected_row = 0;
+                    Data.Parameter param = new Data.Parameter();
+                    foreach (IReadOnlyList<Cell> row in table.Rows)
+                    {
+                        for(int i = 0; i < row.Count; ++i)
+                        {
+                            Cell cell = row[i];
+                            string cell_text = "";
+                            foreach (TextChunk chunk in cell.TextElements)
+                            {
+                                foreach (TextElement elem in chunk.TextElements)
+                                {
+                                    if(elem.Font.Name.ToLower().Contains("bold") && i == 0)
+                                        detected_row = 2;
+                                    cell_text += elem.GetText();
+                                }
+                            }
+                            cell_text = cell_text.Trim();
+                            if (cell_text.Length == 0 || detected_row == 0)
+                                continue;
+
+                            if(detected_row == 2){ // Заголовок таблицы
+                                switch(i){
+                                    case 0:
+                                        param.Name = cell_text;
+                                        break;
+                                    case 2:
+                                        bool detected_range = Char.IsDigit(cell_text[0]);
+                                        for(int j = 0; j < range_white_words.Count && !detected_range; ++j)
+                                            if(cell_text.IndexOf(range_white_words[j]) == 0)
+                                                detected_range = true;
+                                        if(detected_range)
+                                            param.Range = cell_text;
+                                        break;
+                                }
+                            }
+                            else{ // Описание
+                                if(i == 0){
+                                    param.Description = cell_text;
+                                    data.WriteElem(param);
+                                    got_params = true;
+                                }
+                            }
+                        }
+                        if(detected_row > 0)
+                            --detected_row;
+                    }
+                }
+            }
+            return got_params;
+        }
 
         private class TableColumn
         {
