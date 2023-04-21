@@ -37,9 +37,9 @@ namespace ParserCore
                 if(ParseDoubleRowTable(tabparser, new List<int>{pnum})){Console.WriteLine("double row");}
                 else if(ParseSimpleTable(tabparser, new List<int>{pnum})){Console.WriteLine("simple table");}
                 else if(ParseSimplestTable(tabparser, new List<int>{pnum})){Console.WriteLine("simplest table");}
-                else if(ParseLineParams(new List<int>{pnum})){Console.WriteLine("string params");}
+                else if(ParseLineParams(new List<int>{pnum})){Console.WriteLine("line params");}
                 else if(ParseStringParams(new List<int>{pnum})){Console.WriteLine("string params");}
-                else if(ParseParagraphParams(new List<int>{pnum})){Console.WriteLine("string params");}
+                else if(ParseParagraphParams(new List<int>{pnum})){Console.WriteLine("paragraph params");}
             }
         }
 
@@ -224,7 +224,7 @@ namespace ParserCore
                     }
                 }
             }
-            return got_header;
+            return got_params;
         }
       
         private int parse_simple_table_last_page;
@@ -345,54 +345,100 @@ namespace ParserCore
                 {
                     uint detected_row = 0;
                     Data.Parameter param = new Data.Parameter();
-                    foreach (IReadOnlyList<Cell> row in table.Rows)
-                    {
-                        if(row.Count == 0)
-                            continue;
-                        if(detected_row == 0 && row.Count != 4)
-                            return false;
-                        for(int i = 0; i < row.Count; ++i)
-                        {
-                            Cell cell = row[i];
-                            string cell_text = "";
-                            foreach (TextChunk chunk in cell.TextElements)
+                    for(int j = 0; j < table.Rows.Count; ++j){ // Таблица без жирного заголовка, в которой почему-то в каждом ряду 4 ячейки (СПЕ543)
+                        IReadOnlyList<Cell> row = table.Rows[j];
+                        if(j < table.Rows.Count - 1 && (row.Count == 4 && table.Rows[j + 1].Count == 4)){
+                            for(int i = 0; i < row.Count; ++i)
                             {
-                                foreach (TextElement elem in chunk.TextElements)
-                                {
-                                    if(elem.Font.Name.ToLower().Contains("bold") && i == 0)
-                                        detected_row = 2;
-                                    cell_text += elem.GetText();
-                                }
-                            }
-                            cell_text = cell_text.Trim();
-                            if (cell_text.Length == 0 || detected_row == 0)
-                                continue;
-
-                            if(detected_row == 2){ // Заголовок таблицы
+                                Cell cell = row[i];
+                                string cell_text = "";
+                                foreach (TextChunk chunk in cell.TextElements)
+                                    foreach (TextElement elem in chunk.TextElements)
+                                        cell_text += elem.GetText();
+                                cell_text = cell_text.Trim();
                                 switch(i){
                                     case 0:
+                                        if(cell_text.Length == 0 || !Char.IsDigit(cell_text[0]))
+                                            goto end_table;
                                         param.Name = cell_text;
                                         break;
                                     case 2:
-                                        bool detected_range = Char.IsDigit(cell_text[0]);
-                                        for(int j = 0; j < range_white_words.Count && !detected_range; ++j)
-                                            if(cell_text.IndexOf(range_white_words[j]) == 0)
+                                        bool detected_range = cell_text.Length > 0 && Char.IsDigit(cell_text[0]);
+                                        for(int k = 0; k < range_white_words.Count && !detected_range; ++k)
+                                            if(cell_text.IndexOf(range_white_words[k]) == 0)
                                                 detected_range = true;
                                         if(detected_range)
                                             param.Range = cell_text;
                                         break;
                                 }
                             }
-                            else{ // Описание
-                                if(i == 0){
-                                    param.Description = cell_text;
-                                    data.WriteElem(param);
-                                    got_params = true;
+                            param.Description = "";
+                            IReadOnlyList<Cell> row2 = table.Rows[j + 1];
+                            for(int i = 0; i < row2.Count; ++i)
+                            {
+                                Cell cell = row2[i];
+                                string cell_text = "";
+                                foreach (TextChunk chunk in cell.TextElements)
+                                    foreach (TextElement elem in chunk.TextElements)
+                                        cell_text += elem.GetText();
+                                param.Description += cell_text.Trim();
+                            }
+                            if(param.Name.Length > 0 && param.Description.Length > 0){
+                                data.WriteElem(param);
+                                got_params = true;
+                            }
+                            ++j;
+                            end_table:;
+                        }
+                        else{ // Таблица с жирным заголовком, возможны пустые таблицы между рядами
+                            if(row.Count == 0)
+                                continue;
+                            if(detected_row == 0 && row.Count != 4)
+                                return false;
+
+                            for(int i = 0; i < row.Count; ++i)
+                            {
+                                Cell cell = row[i];
+                                string cell_text = "";
+                                foreach (TextChunk chunk in cell.TextElements)
+                                {
+                                    foreach (TextElement elem in chunk.TextElements)
+                                    {
+                                        if(elem.Font.Name.ToLower().Contains("bold") && i == 0)
+                                            detected_row = 2;
+                                        cell_text += elem.GetText();
+                                    }
                                 }
+                                cell_text = cell_text.Trim();
+                                if (cell_text.Length == 0 || detected_row == 0)
+                                    continue;
+    
+                                if(detected_row == 2){ // Заголовок таблицы
+                                    switch(i){
+                                        case 0:
+                                            param.Name = cell_text;
+                                            break;
+                                        case 2:
+                                            bool detected_range = cell_text.Length > 0 && Char.IsDigit(cell_text[0]);
+                                            for(int k = 0; k < range_white_words.Count && !detected_range; ++k)
+                                                if(cell_text.IndexOf(range_white_words[k]) == 0)
+                                                    detected_range = true;
+                                            if(detected_range)
+                                                param.Range = cell_text;
+                                            break;
+                                    }
+                                }
+                                else{ // Описание
+                                    if(i == 0){
+                                        param.Description = cell_text;
+                                        data.WriteElem(param);
+                                        got_params = true;
+                                    }
+                                }
+                            if(detected_row > 0)
+                                --detected_row;
                             }
                         }
-                        if(detected_row > 0)
-                            --detected_row;
                     }
                 }
             }
@@ -407,14 +453,16 @@ namespace ParserCore
 
         private class WordComparer : IComparer<Word>
         {
+            public WordComparer(double top_margin) { this.top_margin = top_margin; }
+            private double top_margin;
             public int Compare(Word word1, Word word2)
             {
-                double top_margin = (word1.BoundingBox.Height + word2.BoundingBox.Height) / 2;
-                if (object.ReferenceEquals(word1, word2))
+                //double top_margin = Math.Max(word1.BoundingBox.Height, word2.BoundingBox.Height);
+                if(object.ReferenceEquals(word1, word2))
                     return 0;
                 else
                 {
-                    if (Math.Abs(word1.BoundingBox.Top - word2.BoundingBox.Top) <= top_margin)
+                    if(Math.Abs(word1.BoundingBox.Top - word2.BoundingBox.Top) <= top_margin)
                         return word1.BoundingBox.Left < word2.BoundingBox.Left ? -1 :
                             word1.BoundingBox.Left > word2.BoundingBox.Left ? 1 : 0;
                     return word1.BoundingBox.Top < word2.BoundingBox.Top ? 1 :
@@ -423,24 +471,32 @@ namespace ParserCore
             }
         }
 
+        private List<string> param_names_blackwords = new List<string>{"текущие", "архивы", "параметры", "база"};
         public bool ParseStringParams(List<int> pages_numbers) 
         {
             const double column_margin = 10;
-            bool got_params = false; 
 
             List<Data.Parameter> _params = new List<Data.Parameter>();
             foreach (int page_num in pages_numbers)
             {
                 IEnumerable<Word> raw_words = _document.GetPage(page_num).GetWords();
                 List<Word> words = new List<Word>(raw_words);
-                words.Sort(new WordComparer());
+                words.Sort(new WordComparer(words[0].BoundingBox.Height));
                 List<TableColumn> table_columns = new List<TableColumn>();
                 bool parse = false;
+                double last_blacklisted_y = double.PositiveInfinity;
                 foreach (Word w in words)
                 {
-                    if (w.FontName.ToLower().Contains("bold") && w.Letters[0].PointSize >= 9){
-                        parse = true;
-                        got_params = true;
+                    if (w.FontName.ToLower().Contains("bold") && w.Letters[0].PointSize >= 9
+                        && (double.IsPositiveInfinity(last_blacklisted_y) || Math.Abs(w.BoundingBox.Top - last_blacklisted_y) >= w.BoundingBox.Height)){
+                        bool is_blacklisted = false;
+                        foreach(string bl in param_names_blackwords)
+                            if(w.Text.Trim().ToLower() == bl)
+                            { is_blacklisted = true; break; }
+                        if(!is_blacklisted)
+                            parse = true;
+                        else
+                            last_blacklisted_y = w.BoundingBox.Top;
                     }
                     if (!parse)
                         continue;
@@ -471,20 +527,19 @@ namespace ParserCore
                     table_columns[1].words.AddRange(table_columns[i].words);
                 }
                 table_columns.RemoveRange(2, table_columns.Count - 2);
-                table_columns[1].words.Sort(new WordComparer());
+                table_columns[1].words.Sort(new WordComparer(table_columns[1].words[0].BoundingBox.Height));
                 int column_1_i = 0, column_2_i = 0;
                 double line_height_1 = table_columns[0].words[0].BoundingBox.Height;
                 double line_height_2 = table_columns[1].words[0].BoundingBox.Height;
                 List<List<TableColumn>> rows = new List<List<TableColumn>>();
 
-                bool repeated_bold_gap = false;
+                int repeated_bold_gap = 0;
                 while(column_1_i < table_columns[0].words.Count && column_2_i < table_columns[1].words.Count)
                 {
-                    if(repeated_bold_gap)
+                    if(repeated_bold_gap >= 2)
                         return false;
                     while (column_1_i < table_columns[0].words.Count && column_2_i < table_columns[1].words.Count)
                     {
-                        //Console.WriteLine("indicies: " + column_1_i + " " + column_2_i);
                         List<TableColumn> row = new List<TableColumn>();
                         TableColumn tc1 = new TableColumn(), tc2 = new TableColumn();
                         double last_y = table_columns[0].words[column_1_i].BoundingBox.Top;
@@ -521,25 +576,29 @@ namespace ParserCore
                         string description = "";
                         foreach (Word w in row[1].words)
                         {
+                            if(w.FontName.ToLower().Contains("bold"))
+                                goto end_row;
                             description += w.Text + ' ';
                         }
                         foreach (Word w in row[0].words)
                         {
                             string param = w.Text.Replace(",", "");
                             Data.Parameter parameter = new Data.Parameter();
+                            Console.WriteLine(param + " " + description);
                             parameter.Name = param;
                             parameter.Range = "";
                             parameter.Description = description;
                             _params.Add(parameter);
                         }
+                        end_row:;
                     }
                     //++column_1_i; ++column_2_i;
-                    repeated_bold_gap = true;
+                    ++repeated_bold_gap;
                 }
             }
             foreach(Data.Parameter param in _params)
                 data.WriteElem(param);
-            return got_params;
+            return _params.Count > 0;
         }
 
         public bool ParseParagraphParams(List<int> page_numbers)
@@ -547,7 +606,7 @@ namespace ParserCore
             List<Data.Parameter> _params = new List<Data.Parameter>();
             foreach(int page_num in page_numbers){
                 List<Word> words = new List<Word>(_document.GetPage(page_num).GetWords());
-                words.Sort(new WordComparer()); 
+                words.Sort(new WordComparer(words[0].BoundingBox.Height)); 
                 bool scan_for_bold = true;
                 int repeated_scan = 0; // повторно нашли жирное слово более чем 1 раз - не тот тип параметров
                 bool check_bold = true; // проверка на то что в начале строки стоит жирное слово
@@ -555,6 +614,8 @@ namespace ParserCore
                 string param_names = ""; string param_desc = "";
                 for(int i = 1; i < words.Count; ++i){
                     Word word1 = words[i - 1], word2 = words[i];
+                    if(word1.Text == "∆∆") // не знаю почему так возникает в СПГ742, pdfpig выдаёт такое
+                        continue;
                     if(scan_for_bold){
                         if(word1.FontName.ToLower().Contains("bold") && word1.Letters[0].PointSize >= 9){
                             if(repeated_scan < 2){
@@ -566,9 +627,7 @@ namespace ParserCore
                         }
                     }
                     else{
-                        bool is_bold = false;
-                        if(word1.FontName.ToLower().Contains("bold") && word1.Letters[0].PointSize >= 9)
-                                is_bold = true;
+                        bool is_bold = word1.FontName.ToLower().Contains("bold") && word1.Letters[0].PointSize >= 9;
                         if(check_bold && !is_bold){
                                 scan_for_bold = true;
                                 ++repeated_scan;
@@ -584,16 +643,29 @@ namespace ParserCore
                                 param_names += word1 + " ";
                             else // !track_bold && !is_bold
                                 param_desc += word1 + " ";
+
+                            if(word1.FontName.ToLower().Contains("bold") && word2.FontName.ToLower().Contains("bold")
+                                && word1.Letters[0].FontSize != word2.Letters[0].FontSize) // отделяем заголовок от названия параметра (СПТ942)
+                               param_names = "";
+
                             double top_margin = (word1.BoundingBox.Height + word2.BoundingBox.Height) / 2 * 3;
                             if(i == words.Count - 1 || Math.Abs(words[i - 1].BoundingBox.Top - words[i].BoundingBox.Top) > top_margin){
                                     if(i == words.Count - 1)
                                         param_desc += word2;
                                     param_desc = param_desc.Trim();
+
                                     foreach(string pname in param_names.Split(',')){
-                                        Data.Parameter param = new Data.Parameter();
-                                        param.Name = pname.Trim();
-                                        param.Description = param_desc;
-                                        _params.Add(param);
+                                        bool is_blacklisted = false;
+                                        foreach(string bl in param_names_blackwords)
+                                            if(pname.Trim().ToLower().Contains(bl))
+                                            { is_blacklisted = true; break; }
+
+                                        if(!is_blacklisted && pname.Any(c => Char.IsDigit(c) || Char.IsLetter(c))){
+                                            Data.Parameter param = new Data.Parameter();
+                                            param.Name = pname.Trim().Replace("∆∆", "∆"); // не знаю почему так возникает в СПГ742, pdfpig выдаёт такое
+                                            param.Description = param_desc;
+                                            _params.Add(param);
+                                        }
                                     }
                                     param_names = ""; param_desc = "";
                                     check_bold = true; track_bold = true;
