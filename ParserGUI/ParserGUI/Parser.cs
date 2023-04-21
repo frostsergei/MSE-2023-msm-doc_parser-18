@@ -13,6 +13,7 @@ using System.Runtime.InteropServices;
 using UglyToad.PdfPig.Graphics.Colors;
 using System.Drawing;
 using UglyToad.PdfPig.Graphics;
+using System.Runtime.InteropServices.WindowsRuntime;
 
 namespace ParserCore
 {
@@ -32,10 +33,13 @@ namespace ParserCore
             ParseContent(_document);
 
             foreach(int pnum in _pageNumbers){
-                if(ParseDoubleRowTable(tabparser, new List<int>{pnum})){}
-                else if(ParseSimpleTable(tabparser, new List<int>{pnum})){}
-                else if(ParseLineParams(new List<int>{pnum})){}
-                else if(ParseStringParams(new List<int>{pnum})){}
+                Console.WriteLine("page: " + pnum);
+                if(ParseDoubleRowTable(tabparser, new List<int>{pnum})){Console.WriteLine("double row");}
+                else if(ParseSimpleTable(tabparser, new List<int>{pnum})){Console.WriteLine("simple table");}
+                else if(ParseSimplestTable(tabparser, new List<int>{pnum})){Console.WriteLine("simplest table");}
+                else if(ParseLineParams(new List<int>{pnum})){Console.WriteLine("string params");}
+                else if(ParseStringParams(new List<int>{pnum})){Console.WriteLine("string params");}
+                else if(ParseParagraphParams(new List<int>{pnum})){Console.WriteLine("string params");}
             }
         }
 
@@ -121,14 +125,15 @@ namespace ParserCore
         }
 
 
-      
-        public bool ParseSimpleTable(TabulaParser parser, List<int> page_numbers)
+        private int parse_simplest_table_last_page;
+        public bool ParseSimplestTable(TabulaParser parser, List<int> page_numbers)
         {
-            List<string>[] header_sentences = new List<string>[]{new List<string>{"Номер","элемента","списка" },
-                                                                 new List<string>{"Значение", "элемента", "адрес", "и", "признаки", "вывода", "на", "печать"},
-                                                                 new List<string>{"Наименование", "элемента", "и", "комментарии"} };
-
-            bool got_header = false;
+            List<string>[] header_sentences = new List<string>[]{new List<string>{"Параметр" },
+                                                                 new List<string>{"Краткое", "описание"} };
+            bool got_params = false;
+            bool got_header = (page_numbers[0] - parse_simplest_table_last_page == 1);
+            if(page_numbers[0] - parse_simplest_table_last_page == 1)
+                parse_simplest_table_last_page = page_numbers.Last();
             foreach (int page_num in page_numbers)
             {
                 List<Table> tables = parser.ParsePage(page_num);
@@ -136,7 +141,11 @@ namespace ParserCore
                 {
                     foreach (IReadOnlyList<Cell> row in table.Rows)
                     {
-                        Data.Parameter param = new Data.Parameter();
+                        if(row.Count == 0)
+                            continue;
+                        if(row.Count != 2)
+                            return false;
+                        List<Data.Parameter> _params = new List<Data.Parameter>();
                         bool wrote_row = false;
                         for (int i = 0; i < row.Count; ++i)
                         {
@@ -175,7 +184,8 @@ namespace ParserCore
                                 ++word_i;
                             }
                             if(row_is_header && has_valid_header_words){
-                                got_header = true; // Должно работать, не встречал подобных таблиц без заголовка на одной странице
+                                got_header = true; 
+                                parse_simplest_table_last_page = page_num;
                                 break;
                             }
 
@@ -190,23 +200,138 @@ namespace ParserCore
                                 wrote_row = true;
                             switch (i)
                             {
-                                case 0: // Номер элемента списка
-                                    param.Name = cell_text;
+                                case 0: 
+                                    foreach(string pname in cell_text.Split(',')){
+                                        Data.Parameter param = new Data.Parameter();
+                                        param.Name = pname.Trim();
+                                        _params.Add(param);
+                                    }
+                                    break;
+                                case 1:
+                                    for(int j = 0; j < _params.Count; ++j){
+                                        Data.Parameter param = _params[j];
+                                        param.Description = cell_text;
+                                        _params[j] = param;
+                                    }
+                                    break;
+                            }
+                        }
+                        if(wrote_row){
+                            foreach(Data.Parameter param in _params)
+                                data.WriteElem(param);
+                            got_params = true;
+                        }
+                    }
+                }
+            }
+            return got_header;
+        }
+      
+        private int parse_simple_table_last_page;
+        public bool ParseSimpleTable(TabulaParser parser, List<int> page_numbers)
+        {
+            List<string>[] header_sentences = new List<string>[]{new List<string>{"Номер","элемента","списка" },
+                                                                 new List<string>{"Значение", "элемента", "адрес", "и", "признаки", "вывода", "на", "печать"},
+                                                                 new List<string>{"Наименование", "элемента", "и", "комментарии"} };
+            bool got_params = false;
+            bool got_header = (page_numbers[0] - parse_simple_table_last_page == 1);
+            if(page_numbers[0] - parse_simple_table_last_page == 1)
+                parse_simple_table_last_page = page_numbers.Last();
+            foreach (int page_num in page_numbers)
+            {
+                parse_simple_table_last_page = page_num;
+                List<Table> tables = parser.ParsePage(page_num);
+                foreach (Table table in tables)
+                {
+                    foreach (IReadOnlyList<Cell> row in table.Rows)
+                    {
+                        if(row.Count == 0)
+                            continue;
+                        if(row.Count != 3)
+                            return false;
+                        List<Data.Parameter> _params = new List<Data.Parameter>();
+                        bool wrote_row = false;
+                        for (int i = 0; i < row.Count; ++i)
+                        {
+                            Cell cell = row[i];
+                            string cell_text = "";
+                            foreach (TextChunk chunk in cell.TextElements)
+                            {
+                                foreach (TextElement elem in chunk.TextElements)
+                                {
+                                    cell_text += elem.GetText();
+                                }
+                            }
+                            if (cell_text.Length == 0)
+                                continue;
+                            string[] cell_words = cell_text.Split(' ');
+
+                            int word_i = 0;
+                            bool row_is_header = true; bool has_valid_header_words = false;
+                            foreach(string word in cell_words){
+                                if(word.Length == 0 || !char.IsLetter(word[0]))
+                                    continue;
+                                has_valid_header_words = true;
+                                bool matches_header = false;
+                                foreach(List<string> sentence in header_sentences){
+                                    if(word_i >= sentence.Count)
+                                        continue;
+                                    if(sentence[word_i] == word){
+                                        matches_header = true;
+                                        break;
+                                    }
+                                }
+                                if(!matches_header){
+                                    row_is_header = false;
+                                    break;
+                                }
+                                ++word_i;
+                            }
+                            if(row_is_header && has_valid_header_words){
+                                got_header = true; 
+                                parse_simple_table_last_page = page_num;
+                                break;
+                            }
+
+                            if(!got_header)
+                                break;
+
+                            cell_text = cell_text.Trim();
+                            if(cell_text.Length == 0)
+                                continue;
+
+                            if(!wrote_row)
+                                wrote_row = true;
+                            switch(i)
+                            {
+                                case 0: 
+                                    foreach(string pname in cell_text.Split(',')){
+                                        Data.Parameter param = new Data.Parameter();
+                                        param.Name = pname.Trim();
+                                        _params.Add(param);
+                                    }
                                     break;
                                 case 1:
                                     // Адрес параметра, не используется
                                     break;
                                 case 2:
-                                    param.Description = cell_text;
+                                    for(int j = 0; j < _params.Count; ++j){
+                                        Data.Parameter param = _params[j];
+                                        param.Description = cell_text;
+                                        _params[j] = param;
+                                    }
                                     break;
                             }
                         }
-                        if(wrote_row)
-                            data.WriteElem(param);
+                        if(wrote_row){
+                            foreach(Data.Parameter param in _params)
+                                data.WriteElem(param);
+                            got_params = true;
+                        }
                     }
                 }
             }
-            return got_header;
+            return got_params;
         }
 
         public bool ParseDoubleRowTable(TabulaParser parser, List<int> page_numbers)
@@ -222,6 +347,10 @@ namespace ParserCore
                     Data.Parameter param = new Data.Parameter();
                     foreach (IReadOnlyList<Cell> row in table.Rows)
                     {
+                        if(row.Count == 0)
+                            continue;
+                        if(detected_row == 0 && row.Count != 4)
+                            return false;
                         for(int i = 0; i < row.Count; ++i)
                         {
                             Cell cell = row[i];
@@ -299,6 +428,7 @@ namespace ParserCore
             const double column_margin = 10;
             bool got_params = false; 
 
+            List<Data.Parameter> _params = new List<Data.Parameter>();
             foreach (int page_num in pages_numbers)
             {
                 IEnumerable<Word> raw_words = _document.GetPage(page_num).GetWords();
@@ -308,7 +438,7 @@ namespace ParserCore
                 bool parse = false;
                 foreach (Word w in words)
                 {
-                    if (w.FontName.ToLower().Contains("bold")){
+                    if (w.FontName.ToLower().Contains("bold") && w.Letters[0].PointSize >= 9){
                         parse = true;
                         got_params = true;
                     }
@@ -346,58 +476,135 @@ namespace ParserCore
                 double line_height_1 = table_columns[0].words[0].BoundingBox.Height;
                 double line_height_2 = table_columns[1].words[0].BoundingBox.Height;
                 List<List<TableColumn>> rows = new List<List<TableColumn>>();
-                while (column_1_i < table_columns[0].words.Count && column_2_i < table_columns[1].words.Count)
+
+                bool repeated_bold_gap = false;
+                while(column_1_i < table_columns[0].words.Count && column_2_i < table_columns[1].words.Count)
                 {
-                    List<TableColumn> row = new List<TableColumn>();
-                    TableColumn tc1 = new TableColumn(), tc2 = new TableColumn();
-                    double last_y = table_columns[0].words[column_1_i].BoundingBox.Top;
-                    for (; column_1_i < table_columns[0].words.Count
-                        && table_columns[0].words[column_1_i].BoundingBox.Top >= last_y - line_height_1 * 2; column_1_i++)
+                    if(repeated_bold_gap)
+                        return false;
+                    while (column_1_i < table_columns[0].words.Count && column_2_i < table_columns[1].words.Count)
                     {
-                        if (!table_columns[0].words[column_1_i].FontName.ToLower().Contains("bold"))
+                        //Console.WriteLine("indicies: " + column_1_i + " " + column_2_i);
+                        List<TableColumn> row = new List<TableColumn>();
+                        TableColumn tc1 = new TableColumn(), tc2 = new TableColumn();
+                        double last_y = table_columns[0].words[column_1_i].BoundingBox.Top;
+                        for (; column_1_i < table_columns[0].words.Count
+                            && table_columns[0].words[column_1_i].BoundingBox.Top >= last_y - line_height_1 * 1.8; column_1_i++)
                         {
-                            goto end_table;
+                            if (!table_columns[0].words[column_1_i].FontName.ToLower().Contains("bold"))
+                            {
+                                goto end_table;
+                            }
+                            if (table_columns[0].words[column_1_i].BoundingBox.Top <= last_y)
+                            {
+                                last_y = table_columns[0].words[column_1_i].BoundingBox.Top;
+                            }
+                            tc1.words.Add(table_columns[0].words[column_1_i]);
                         }
-                        if (table_columns[0].words[column_1_i].BoundingBox.Top <= last_y)
+                        double last_y_2 = table_columns[1].words[column_2_i].BoundingBox.Top;
+                        for (; column_2_i < table_columns[1].words.Count
+                            && table_columns[1].words[column_2_i].BoundingBox.Top >= last_y_2 - line_height_2 * 1.8; column_2_i++)
                         {
-                            last_y = table_columns[0].words[column_1_i].BoundingBox.Top;
+                            if (table_columns[1].words[column_2_i].BoundingBox.Top <= last_y_2)
+                            {
+                                last_y_2 = table_columns[1].words[column_2_i].BoundingBox.Top;
+                            }
+                            tc2.words.Add(table_columns[1].words[column_2_i]);
                         }
-                        tc1.words.Add(table_columns[0].words[column_1_i]);
+                        row.Add(tc1);
+                        row.Add(tc2);
+                        rows.Add(row);
                     }
-                    double last_y_2 = table_columns[1].words[column_2_i].BoundingBox.Top;
-                    for (; column_2_i < table_columns[1].words.Count
-                        && table_columns[1].words[column_2_i].BoundingBox.Top >= last_y_2 - line_height_2 * 2; column_2_i++)
+                    end_table:
+                    foreach (List<TableColumn> row in rows)
                     {
-                        if (table_columns[1].words[column_2_i].BoundingBox.Top <= last_y_2)
+                        string description = "";
+                        foreach (Word w in row[1].words)
                         {
-                            last_y_2 = table_columns[1].words[column_2_i].BoundingBox.Top;
+                            description += w.Text + ' ';
                         }
-                        tc2.words.Add(table_columns[1].words[column_2_i]);
+                        foreach (Word w in row[0].words)
+                        {
+                            string param = w.Text.Replace(",", "");
+                            Data.Parameter parameter = new Data.Parameter();
+                            parameter.Name = param;
+                            parameter.Range = "";
+                            parameter.Description = description;
+                            _params.Add(parameter);
+                        }
                     }
-                    row.Add(tc1);
-                    row.Add(tc2);
-                    rows.Add(row);
+                    //++column_1_i; ++column_2_i;
+                    repeated_bold_gap = true;
                 }
-            end_table:
-                foreach (List<TableColumn> row in rows)
-                {
-                    string description = "";
-                    foreach (Word w in row[1].words)
-                    {
-                        description += w.Text + ' ';
+            }
+            foreach(Data.Parameter param in _params)
+                data.WriteElem(param);
+            return got_params;
+        }
+
+        public bool ParseParagraphParams(List<int> page_numbers)
+        {
+            List<Data.Parameter> _params = new List<Data.Parameter>();
+            foreach(int page_num in page_numbers){
+                List<Word> words = new List<Word>(_document.GetPage(page_num).GetWords());
+                words.Sort(new WordComparer()); 
+                bool scan_for_bold = true;
+                int repeated_scan = 0; // повторно нашли жирное слово более чем 1 раз - не тот тип параметров
+                bool check_bold = true; // проверка на то что в начале строки стоит жирное слово
+                bool track_bold = true; // отслеживание жирных слов в начале строки (название параметра)
+                string param_names = ""; string param_desc = "";
+                for(int i = 1; i < words.Count; ++i){
+                    Word word1 = words[i - 1], word2 = words[i];
+                    if(scan_for_bold){
+                        if(word1.FontName.ToLower().Contains("bold") && word1.Letters[0].PointSize >= 9){
+                            if(repeated_scan < 2){
+                                scan_for_bold = false;
+                                --i;
+                            }
+                            else
+                                return false;
+                        }
                     }
-                    foreach (Word w in row[0].words)
-                    {
-                        string param = w.Text.Replace(",", "");
-                        Data.Parameter parameter = new Data.Parameter();
-                        parameter.Name = param;
-                        parameter.Range = "";
-                        parameter.Description = description;
-                        data.WriteElem(parameter);
+                    else{
+                        bool is_bold = false;
+                        if(word1.FontName.ToLower().Contains("bold") && word1.Letters[0].PointSize >= 9)
+                                is_bold = true;
+                        if(check_bold && !is_bold){
+                                scan_for_bold = true;
+                                ++repeated_scan;
+                        }
+                        else{
+                            check_bold = false;
+
+                            if(track_bold && !is_bold){
+                                track_bold = false;
+                                param_desc += word1 + " ";
+                            }
+                            else if(track_bold) // && is_bold
+                                param_names += word1 + " ";
+                            else // !track_bold && !is_bold
+                                param_desc += word1 + " ";
+                            double top_margin = (word1.BoundingBox.Height + word2.BoundingBox.Height) / 2 * 3;
+                            if(i == words.Count - 1 || Math.Abs(words[i - 1].BoundingBox.Top - words[i].BoundingBox.Top) > top_margin){
+                                    if(i == words.Count - 1)
+                                        param_desc += word2;
+                                    param_desc = param_desc.Trim();
+                                    foreach(string pname in param_names.Split(',')){
+                                        Data.Parameter param = new Data.Parameter();
+                                        param.Name = pname.Trim();
+                                        param.Description = param_desc;
+                                        _params.Add(param);
+                                    }
+                                    param_names = ""; param_desc = "";
+                                    check_bold = true; track_bold = true;
+                            }
+                        }
                     }
                 }
             }
-            return got_params;
+            foreach(Data.Parameter param in _params)
+                data.WriteElem(param);
+            return _params.Count > 0;
         }
 
         private static string GetText(List<Letter> letters)
