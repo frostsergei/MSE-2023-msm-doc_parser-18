@@ -152,11 +152,14 @@ namespace ParserCore
                         {
                             Cell cell = row[i];
                             string cell_text = "";
+                            bool cell_text_bold = true;
                             foreach (TextChunk chunk in cell.TextElements)
                             {
                                 foreach (TextElement elem in chunk.TextElements)
                                 {
                                     cell_text += elem.GetText();
+                                    if(!elem.Font.Name.ToLower().Contains("bold"))
+                                        cell_text_bold = false;
                                 }
                             }
                             if (cell_text.Length == 0)
@@ -201,7 +204,9 @@ namespace ParserCore
                                 wrote_row = true;
                             switch (i)
                             {
-                                case 0: 
+                                case 0:
+                                    if(!cell_text_bold)
+                                        goto end_row;
                                     foreach(string pname in cell_text.Split(',')){
                                         Data.Parameter param = new Data.Parameter();
                                         param.Name = pname.Trim();
@@ -217,6 +222,7 @@ namespace ParserCore
                                     break;
                             }
                         }
+                        end_row:
                         if(wrote_row){
                             foreach(Data.Parameter param in _params)
                                 data.WriteElem(param);

@@ -86,11 +86,11 @@ namespace ParserGUI
                 await Task.Run(() => {
 					DbService dbService = new DbService("YOUR .mdb FILE");
                     parser = new Parser(ofd.FileName);
-                    //RTFResult result = new RTFResult(parser);
-                    //Result = result.Serialize();
+                    RTFResult result = new RTFResult(parser.GetData());
+                    Result = result.Serialize();
                 }
                 );
-                RTBOutput.Text = Result;
+                RTBOutput.Rtf = Result;
                 WaitForm2.Close();
             }
             else

@@ -10,43 +10,40 @@ namespace ParserCore
     internal class RTFResult
     {
         private StringBuilder _stringBuilder;
-        private IParser _parser;
+        private Data data;
 
-        public RTFResult(IParser parser)
+        public RTFResult(Data _data)
         {
-            _parser = parser;
+            data = _data;
             _stringBuilder = new StringBuilder();
-            _stringBuilder.Append(@"{\rtf1\ansi\deff0");
-        }
-
-        public void AddTable(Table table)
-        {         
-            for (int i = 0; i < table.RowCount; i++)
-            {
-                _stringBuilder.Append(@"\trowd ");
-                var nonEmptyCells = new List<Cell>(table.Rows[i]);
-                while(nonEmptyCells.Count() > 0 && nonEmptyCells.Last().GetText()=="") nonEmptyCells.RemoveAt(nonEmptyCells.Count - 1);
-                for (int j = 0; j < nonEmptyCells.Count(); j++)
-                {
-                    _stringBuilder.Append(@"\cellx" + (j + 1) * (10000 / nonEmptyCells.Count()));
-                }
-                foreach (var cell in nonEmptyCells)
-                {
-                    _stringBuilder.Append(@"\intbl ");
-                    _stringBuilder.Append(_parser.GetCellText(table, cell).Replace("\n", @"\line "));
-                    _stringBuilder.Append(@"\cell ");
-                }
-                _stringBuilder.Append(@"\row ");
-               
-            }
+            _stringBuilder.Append(@"{\rtf1 ");
         }
 
         public string Serialize()
         {
-            foreach (var table in _parser.GetTables())
+            _stringBuilder.Append(@"\trowd ");
+            _stringBuilder.Append(@"\cellx2000 ");
+            _stringBuilder.Append(@"\cellx4000 ");
+            _stringBuilder.Append(@"\cellx10000 ");
+
+            _stringBuilder.Append(@"\intbl \b " + "Название параметра" + @"\b0 \cell");
+            _stringBuilder.Append(@"\intbl \b " + "Диапазон" + @"\b0 \cell");
+            _stringBuilder.Append(@"\intbl \b " + "Описание" + @"\b0 \cell");
+            _stringBuilder.Append(@"\row ");
+
+            foreach(Data.Parameter param in data.ReadAll())
             {
-                AddTable(table);
+                _stringBuilder.Append(@"\trowd ");
+                _stringBuilder.Append(@"\cellx2000 ");
+                _stringBuilder.Append(@"\cellx4000 ");
+                _stringBuilder.Append(@"\cellx10000 ");
+
+                _stringBuilder.Append(@"\intbl " + param.Name + @"\cell");
+                _stringBuilder.Append(@"\intbl " + param.Range + @"\cell");
+                _stringBuilder.Append(@"\intbl " + param.Description + @"\cell");
+                _stringBuilder.Append(@"\row ");
             }
+            _stringBuilder.Append(@"\pard");
             _stringBuilder.Append(@"}");
             return _stringBuilder.ToString();
         }

@@ -21,8 +21,6 @@ namespace ParserCore
         }
         public bool CheckTable(Table table)
         {
-            Console.WriteLine(table.RowCount + " " + _minTableRows);
-            Console.WriteLine(table.Width + " " + _minTableWidth + "*" + _page.Width);
             return table.RowCount >= _minTableRows && table.Width > _minTableWidth * _page.Width;
         }
 
