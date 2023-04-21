@@ -129,6 +129,7 @@ namespace ParserCore
         public bool ParseSimplestTable(TabulaParser parser, List<int> page_numbers)
         {
             List<string>[] header_sentences = new List<string>[]{new List<string>{"Параметр" },
+                                                                 new List<string>{"Наименование", "параметра" },
                                                                  new List<string>{"Краткое", "описание"} };
             bool got_params = false;
             bool got_header = (page_numbers[0] - parse_simplest_table_last_page == 1);
@@ -471,7 +472,7 @@ namespace ParserCore
             }
         }
 
-        private List<string> param_names_blackwords = new List<string>{"текущие", "архивы", "параметры", "база"};
+        private List<string> param_names_blackwords = new List<string>{"текущие", "архивы", "параметры", "база", "реализация", "пример", "задача"};
         public bool ParseStringParams(List<int> pages_numbers) 
         {
             const double column_margin = 10;
@@ -584,7 +585,6 @@ namespace ParserCore
                         {
                             string param = w.Text.Replace(",", "");
                             Data.Parameter parameter = new Data.Parameter();
-                            Console.WriteLine(param + " " + description);
                             parameter.Name = param;
                             parameter.Range = "";
                             parameter.Description = description;
