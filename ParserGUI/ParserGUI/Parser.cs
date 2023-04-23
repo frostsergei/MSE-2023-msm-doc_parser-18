@@ -24,82 +24,23 @@ namespace ParserCore
         private TabulaParser tabparser;
 
         private Data data = new Data();
-        
         public Data GetData() { return data; }
-
-        private enum ParameterType
-        {
-            None,
-            DoubleRow,
-            SimpleTable,
-            SimplestTable,
-            LineParams,
-            StringParams,
-            ParagraphParams
-        }
-
-        private ParameterType _parameterType = ParameterType.None;
 
         public Parser(string filename)
         {
             tabparser = new TabulaParser(filename, new NearestNeighbourTextParser());
             _document = PdfDocument.Open(filename, new ParsingOptions() { ClipPaths = true });
             ParseContent(_document);
-            int page = _pageNumbers[0];
-            while (_parameterType == ParameterType.None && page <= _pageNumbers.Last())
-            {
-                if(ParseDoubleRowTable(tabparser, new List<int>{ page }))
-                {
-                    _parameterType = ParameterType.DoubleRow;
-                }
-                else if(ParseSimpleTable(tabparser, new List<int>{ page }))                   
-                {
-                    _parameterType = ParameterType.SimpleTable;
-                }
-                else if(ParseSimplestTable(tabparser, new List<int>{ page }))
-                {
-                    _parameterType = ParameterType.SimplestTable;
-                }
-                else if(ParseLineParams(new List<int>{ page }))
-                {
-                    _parameterType = ParameterType.LineParams;
-                }
-                else if(ParseStringParams(new List<int>{ page }))
-                {
-                    _parameterType = ParameterType.StringParams;
-                }
-                else if(ParseParagraphParams(new List<int>{ page }))
-                {
-                    _parameterType = ParameterType.ParagraphParams;
-                }
-                page++;
-            }
-            data.ReadAll().Clear();
 
-            switch (_parameterType)
-            {
-                case ParameterType.DoubleRow:
-                    ParseDoubleRowTable(tabparser, _pageNumbers);
-                    break;
-                case ParameterType.SimpleTable:
-                    ParseSimpleTable(tabparser, _pageNumbers);
-                    break;
-                case ParameterType.SimplestTable:
-                    ParseSimplestTable(tabparser, _pageNumbers);
-                    break;
-                case ParameterType.LineParams:
-                    ParseLineParams(_pageNumbers);
-                    break;
-                case ParameterType.StringParams:
-                    ParseStringParams(_pageNumbers);
-                    break;
-                case ParameterType.ParagraphParams:
-                    ParseParagraphParams(_pageNumbers);
-                    break;
-                default:
-                    break;
+            foreach(int pnum in _pageNumbers){
+                Console.WriteLine("page: " + pnum);
+                if(ParseDoubleRowTable(tabparser, new List<int>{pnum})){Console.WriteLine("double row");}
+                else if(ParseSimpleTable(tabparser, new List<int>{pnum})){Console.WriteLine("simple table");}
+                else if(ParseSimplestTable(tabparser, new List<int>{pnum})){Console.WriteLine("simplest table");}
+                else if(ParseLineParams(new List<int>{pnum})){Console.WriteLine("line params");}
+                else if(ParseStringParams(new List<int>{pnum})){Console.WriteLine("string params");}
+                else if(ParseParagraphParams(new List<int>{pnum})){Console.WriteLine("paragraph params");}
             }
-
         }
 
         public void ParseContent(PdfDocument document)
@@ -944,7 +885,7 @@ namespace ParserCore
             private List<int> GetPages()
             {
                 string[] whiteList = new string[] { "ТЕК", "НАСТР", "БД", "Общесистем", "Вычисляемые", "вычисляемые", "параметр", "настроечн", "Настроечн", "Текущ" };
-                string[] blackList = new string[] { "Приложение", "списки", "список", "Список", "Списки", "контр", "Контр", "Структур", "Ввод", "Режим", "режим", "справка", "Справка" };
+                string[] blackList = new string[] { "Приложение", "списки", "список", "Список", "контр", "Контр", "Структур", "Ввод", "Режим", "режим", "справка", "Справка" };
 
                 var pages = new SortedSet<int>();
                 foreach (var item in _contentItems)
