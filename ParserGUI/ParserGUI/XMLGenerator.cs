@@ -13,6 +13,12 @@ namespace ParserCore
     {
         static private bool IsValidAttribute(string attrib) { return attrib != null && attrib.Length > 0; }
 
+        static private string NormalizeField(string s)
+        {
+            IEnumerable<char> c_out = s.Normalize(NormalizationForm.FormD);
+            return new string(c_out.Where(c => !char.IsControl(c)).ToArray());
+        }
+
         static public void WriteData(Data data, Stream fout)
         {
             XmlWriterSettings settings = new XmlWriterSettings();
@@ -21,9 +27,9 @@ namespace ParserCore
                 writer.WriteStartElement("TagList");
                 foreach(Data.Parameter param in data.ReadAll()){
                     writer.WriteStartElement("Row");
-                    if(IsValidAttribute(param.Name)) writer.WriteAttributeString("Param", param.Name);
-                    if(IsValidAttribute(param.Description)) writer.WriteAttributeString("Description", param.Description);
-                    if(IsValidAttribute(param.Range)) writer.WriteAttributeString("Range", param.Range);
+                    if(IsValidAttribute(param.Name)) writer.WriteAttributeString("Param", NormalizeField(param.Name));
+                    if(IsValidAttribute(param.Description)) writer.WriteAttributeString("Description", NormalizeField(param.Description));
+                    if(IsValidAttribute(param.Range)) writer.WriteAttributeString("Range", NormalizeField(param.Range));
                     writer.WriteEndElement();
                 }
                 writer.WriteEndElement();
