@@ -33,13 +33,12 @@ namespace ParserCore
             ParseContent(_document);
 
             foreach(int pnum in _pageNumbers){
-                Console.WriteLine("page: " + pnum);
-                if(ParseDoubleRowTable(tabparser, new List<int>{pnum})){Console.WriteLine("double row");}
-                else if(ParseSimpleTable(tabparser, new List<int>{pnum})){Console.WriteLine("simple table");}
-                else if(ParseSimplestTable(tabparser, new List<int>{pnum})){Console.WriteLine("simplest table");}
-                else if(ParseLineParams(new List<int>{pnum})){Console.WriteLine("line params");}
-                else if(ParseStringParams(new List<int>{pnum})){Console.WriteLine("string params");}
-                else if(ParseParagraphParams(new List<int>{pnum})){Console.WriteLine("paragraph params");}
+                if(ParseDoubleRowTable(tabparser, new List<int>{pnum})){}
+                else if(ParseSimpleTable(tabparser, new List<int>{pnum})){}
+                else if(ParseSimplestTable(tabparser, new List<int>{pnum})){}
+                else if(ParseLineParams(new List<int>{pnum})){}
+                else if(ParseStringParams(new List<int>{pnum})){}
+                else if(ParseParagraphParams(new List<int>{pnum})){}
             }
         }
 
@@ -365,6 +364,7 @@ namespace ParserCore
                                 cell_text = cell_text.Trim();
                                 switch(i){
                                     case 0:
+                                        param.Description = param.Range = null;
                                         if(cell_text.Length == 0 || !Char.IsDigit(cell_text[0]))
                                             goto end_table;
                                         param.Name = cell_text;
@@ -423,6 +423,7 @@ namespace ParserCore
                                 if(detected_row == 2){ // Заголовок таблицы
                                     switch(i){
                                         case 0:
+                                            param.Description = param.Range = null;
                                             param.Name = cell_text;
                                             break;
                                         case 2:
