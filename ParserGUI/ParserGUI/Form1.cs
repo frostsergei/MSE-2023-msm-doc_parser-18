@@ -11,6 +11,7 @@ using System.Windows.Forms;
 using ParserCore;
 using System.Xml;
 
+
 namespace ParserGUI
 {
     public partial class Window : Form
@@ -24,7 +25,6 @@ namespace ParserGUI
         string Result;
         WaitForm WaitForm2;
         Parser parser;
-
 
         private void TextBoxChoose_TextChanged(object sender, EventArgs e)
         {
@@ -49,8 +49,8 @@ namespace ParserGUI
                 sfd.Filter = "Data base file|*.mdb|XML|*.xml";
                 sfd.Title = "Сохранить результат";
                 sfd.ShowDialog();
-
-                if (sfd.FileName != "")
+                string fileExtension = Path.GetExtension(sfd.FileName);
+                if (sfd.FileName != "" && fileExtension != ".mdb")
                 {
                     TextBoxSave.Text = sfd.FileName;
                     FileStream NewFile = File.OpenWrite(sfd.FileName);
@@ -58,6 +58,12 @@ namespace ParserGUI
                     XMLGenerator.WriteData(parser.GetData(), NewFile);
                     NewFile.Close();
                     MessageBox.Show("Файл успешно сохранен!");
+                }
+                else if(sfd.FileName != "" && fileExtension == ".mdb")
+                {
+                    var tableName = ofd.FileName.Split('\\');
+                    DbService dbService = new DbService(sfd.FileName, tableName.Last().ToLower().Replace(".pdf", ""));
+                    dbService.writeParamsToDb(parser.GetData());
                 }
             }
             else
@@ -78,15 +84,16 @@ namespace ParserGUI
                 }
             }
         }
+        
         private async void ButtonStart_Click(object sender, EventArgs e)
         {
             if (ofd.FileName != "")
             {
-				WaitForm2 = new WaitForm();
+				        WaitForm2 = new WaitForm();
                 CenterWaitFormToWindow();
                 WaitForm2.Show(this);
                 await Task.Run(() => {
-					DbService dbService = new DbService("YOUR .mdb FILE");
+                
                     parser = new Parser(ofd.FileName);
                     RTFResult result = new RTFResult(parser.GetData());
                     Result = result.Serialize();
@@ -125,13 +132,13 @@ namespace ParserGUI
                 m_PreviousLocation = Location;
             }
         }
+        
         private void CenterWaitFormToWindow()
         {
             WaitForm2.Location = new Point(
             this.Location.X + this.Width / 2 - WaitForm2.ClientSize.Width / 2,
             this.Location.Y + this.Height / 2 - WaitForm2.ClientSize.Height / 2);
         }
-
     }
 }
 
