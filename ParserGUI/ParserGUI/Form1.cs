@@ -84,14 +84,16 @@ namespace ParserGUI
                 }
             }
         }
+        
         private async void ButtonStart_Click(object sender, EventArgs e)
         {
             if (ofd.FileName != "")
             {
-				WaitForm2 = new WaitForm();
+				        WaitForm2 = new WaitForm();
+                CenterWaitFormToWindow();
                 WaitForm2.Show(this);
                 await Task.Run(() => {
-					
+                
                     parser = new Parser(ofd.FileName);
                     RTFResult result = new RTFResult(parser.GetData());
                     Result = result.Serialize();
@@ -129,6 +131,13 @@ namespace ParserGUI
                 }
                 m_PreviousLocation = Location;
             }
+        }
+        
+        private void CenterWaitFormToWindow()
+        {
+            WaitForm2.Location = new Point(
+            this.Location.X + this.Width / 2 - WaitForm2.ClientSize.Width / 2,
+            this.Location.Y + this.Height / 2 - WaitForm2.ClientSize.Height / 2);
         }
     }
 }
