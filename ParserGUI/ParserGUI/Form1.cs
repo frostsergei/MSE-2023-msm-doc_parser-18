@@ -9,6 +9,10 @@ using System.IO;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using ParserCore;
+<<<<<<< Updated upstream
+=======
+using System.Xml;
+>>>>>>> Stashed changes
 
 namespace ParserGUI
 {
@@ -20,18 +24,12 @@ namespace ParserGUI
         }
 
         OpenFileDialog ofd = new OpenFileDialog();
-        string Result;
         WaitForm WaitForm2;
         IParser parser;
 
         private void TextBoxChoose_TextChanged(object sender, EventArgs e)
         {
             TextBoxChoose.BackColor = SystemColors.Window;
-        }
-
-        private void CheckBoxSave_CheckedChanged(object sender, EventArgs e)
-        {
-
         }
 
         private void TextBoxSave_TextChanged(object sender, EventArgs e)
@@ -57,6 +55,15 @@ namespace ParserGUI
                     NewFile.Close();
                     MessageBox.Show("Файл успешно сохранен!");
                 }
+<<<<<<< Updated upstream
+=======
+                else if (sfd.FileName != "" && fileExtension == ".mdb")
+                {
+                    var tableName = ofd.FileName.Split('\\');
+                    DbService dbService = new DbService(sfd.FileName, tableName.Last().ToLower().Replace(".pdf", ""));
+                    dbService.writeParamsToDb(parser.GetData());
+                }
+>>>>>>> Stashed changes
             }
             else
             {
@@ -76,10 +83,15 @@ namespace ParserGUI
                 }
             }
         }
+<<<<<<< Updated upstream
+=======
+
+>>>>>>> Stashed changes
         private async void ButtonStart_Click(object sender, EventArgs e)
         {
             if (ofd.FileName != "")
             {
+<<<<<<< Updated upstream
 				        WaitForm2 = new WaitForm();
                 WaitForm2.Show(this);
                 await Task.Run(() =>
@@ -92,19 +104,28 @@ namespace ParserGUI
                 }
                 );
                 RTBOutput.Text = Result;
+=======
+				WaitForm2 = new WaitForm();
+                CenterWaitFormToWindow();
+                WaitForm2.Show(this);
+
+                await Task.Run(() => {
+                    parser = new Parser(ofd.FileName);
+                }
+                );
+
+                foreach (Data.Parameter param in parser.GetData().ReadAll())
+                {
+                    DataTable.Rows.Add(param.Name, param.Range, param.Description);
+                }
+                DataTable.AutoResizeColumns();
+                DataTable.AllowUserToAddRows = false;
+>>>>>>> Stashed changes
                 WaitForm2.Close();
             }
             else
             {
                 MessageBox.Show("Вы не выбрали файл!");
-            }
-        }
-
-        private void RTBOutput_TextChanged(object sender, EventArgs e)
-        {
-            if (RTBOutput.ReadOnly)
-            {
-                RTBOutput.BackColor = SystemColors.Window;
             }
         }
 
@@ -124,6 +145,17 @@ namespace ParserGUI
                 m_PreviousLocation = Location;
             }
         }
+<<<<<<< Updated upstream
+=======
+        private void CenterWaitFormToWindow()
+        {
+            WaitForm2.Location = new Point(
+            this.Location.X + this.Width / 2 - WaitForm2.ClientSize.Width / 2,
+            this.Location.Y + this.Height / 2 - WaitForm2.ClientSize.Height / 2);
+        }
+
+        
+>>>>>>> Stashed changes
     }
 }
 

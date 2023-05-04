@@ -31,24 +31,23 @@ namespace ParserGUI
         {
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(Window));
             this.TopPanel = new System.Windows.Forms.Panel();
-            this.ButtonHelp = new System.Windows.Forms.Button();
-            this.ButtonSettings = new System.Windows.Forms.Button();
             this.ButtonFile = new System.Windows.Forms.Button();
             this.TextBoxChoose = new System.Windows.Forms.TextBox();
-            this.MiddlePanel = new System.Windows.Forms.Panel();
-            this.RTBOutput = new System.Windows.Forms.RichTextBox();
             this.TextBoxSave = new System.Windows.Forms.TextBox();
             this.ButtonStart = new System.Windows.Forms.Button();
             this.ButtonChooseFile = new System.Windows.Forms.Button();
             this.LabelChoose = new System.Windows.Forms.Label();
             this.LabelSave = new System.Windows.Forms.Label();
+            this.DataTable = new System.Windows.Forms.DataGridView();
+            this.ParamColumn = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.RangeColumn = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.DescColumn = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.TopPanel.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.DataTable)).BeginInit();
             this.SuspendLayout();
             // 
             // TopPanel
             // 
-            this.TopPanel.Controls.Add(this.ButtonHelp);
-            this.TopPanel.Controls.Add(this.ButtonSettings);
             this.TopPanel.Controls.Add(this.ButtonFile);
             this.TopPanel.Dock = System.Windows.Forms.DockStyle.Top;
             this.TopPanel.Location = new System.Drawing.Point(0, 0);
@@ -56,38 +55,17 @@ namespace ParserGUI
             this.TopPanel.Size = new System.Drawing.Size(800, 24);
             this.TopPanel.TabIndex = 0;
             // 
-            // ButtonHelp
-            // 
-            this.ButtonHelp.FlatAppearance.BorderSize = 0;
-            this.ButtonHelp.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.ButtonHelp.Location = new System.Drawing.Point(144, 0);
-            this.ButtonHelp.Name = "ButtonHelp";
-            this.ButtonHelp.Size = new System.Drawing.Size(75, 24);
-            this.ButtonHelp.TabIndex = 2;
-            this.ButtonHelp.Text = "Справка";
-            this.ButtonHelp.UseVisualStyleBackColor = true;
-            // 
-            // ButtonSettings
-            // 
-            this.ButtonSettings.FlatAppearance.BorderSize = 0;
-            this.ButtonSettings.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.ButtonSettings.Location = new System.Drawing.Point(72, 0);
-            this.ButtonSettings.Name = "ButtonSettings";
-            this.ButtonSettings.Size = new System.Drawing.Size(75, 24);
-            this.ButtonSettings.TabIndex = 1;
-            this.ButtonSettings.Text = "Настройки";
-            this.ButtonSettings.UseVisualStyleBackColor = true;
-            // 
             // ButtonFile
             // 
+            this.ButtonFile.BackColor = System.Drawing.SystemColors.Control;
             this.ButtonFile.FlatAppearance.BorderSize = 0;
             this.ButtonFile.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.ButtonFile.Location = new System.Drawing.Point(0, 0);
+            this.ButtonFile.Location = new System.Drawing.Point(12, 3);
             this.ButtonFile.Name = "ButtonFile";
             this.ButtonFile.Size = new System.Drawing.Size(75, 24);
             this.ButtonFile.TabIndex = 0;
             this.ButtonFile.Text = "Файл";
-            this.ButtonFile.UseVisualStyleBackColor = true;
+            this.ButtonFile.UseVisualStyleBackColor = false;
             this.ButtonFile.Click += new System.EventHandler(this.ButtonFile_Click);
             // 
             // TextBoxChoose
@@ -102,26 +80,6 @@ namespace ParserGUI
             this.TextBoxChoose.Size = new System.Drawing.Size(672, 24);
             this.TextBoxChoose.TabIndex = 1;
             this.TextBoxChoose.TextChanged += new System.EventHandler(this.TextBoxChoose_TextChanged);
-            // 
-            // MiddlePanel
-            // 
-            this.MiddlePanel.Location = new System.Drawing.Point(0, 60);
-            this.MiddlePanel.Name = "MiddlePanel";
-            this.MiddlePanel.Size = new System.Drawing.Size(800, 32);
-            this.MiddlePanel.TabIndex = 3;
-            // 
-            // RTBOutput
-            // 
-            this.RTBOutput.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
-            | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
-            this.RTBOutput.Location = new System.Drawing.Point(12, 98);
-            this.RTBOutput.Name = "RTBOutput";
-            this.RTBOutput.ReadOnly = true;
-            this.RTBOutput.Size = new System.Drawing.Size(776, 314);
-            this.RTBOutput.TabIndex = 4;
-            this.RTBOutput.Text = "";
-            this.RTBOutput.TextChanged += new System.EventHandler(this.RTBOutput_TextChanged);
             // 
             // TextBoxSave
             // 
@@ -184,18 +142,60 @@ namespace ParserGUI
             this.LabelSave.TabIndex = 0;
             this.LabelSave.Text = "Сохранить в файл:";
             // 
+            // DataTable
+            // 
+            this.DataTable.AccessibleRole = System.Windows.Forms.AccessibleRole.None;
+            this.DataTable.AllowUserToAddRows = false;
+            this.DataTable.AllowUserToDeleteRows = false;
+            this.DataTable.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.DataTable.AutoSizeRowsMode = System.Windows.Forms.DataGridViewAutoSizeRowsMode.DisplayedCells;
+            this.DataTable.BackgroundColor = System.Drawing.SystemColors.HighlightText;
+            this.DataTable.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
+            this.DataTable.Columns.AddRange(new System.Windows.Forms.DataGridViewColumn[] {
+            this.ParamColumn,
+            this.RangeColumn,
+            this.DescColumn});
+            this.DataTable.Location = new System.Drawing.Point(15, 69);
+            this.DataTable.Name = "DataTable";
+            this.DataTable.ReadOnly = true;
+            this.DataTable.RowHeadersWidthSizeMode = System.Windows.Forms.DataGridViewRowHeadersWidthSizeMode.AutoSizeToAllHeaders;
+            this.DataTable.Size = new System.Drawing.Size(773, 332);
+            this.DataTable.TabIndex = 10;
+            // 
+            // ParamColumn
+            // 
+            this.ParamColumn.HeaderText = "Название параметра";
+            this.ParamColumn.Name = "ParamColumn";
+            this.ParamColumn.ReadOnly = true;
+            this.ParamColumn.Width = 138;
+            // 
+            // RangeColumn
+            // 
+            this.RangeColumn.HeaderText = "Диапазон";
+            this.RangeColumn.Name = "RangeColumn";
+            this.RangeColumn.ReadOnly = true;
+            this.RangeColumn.Width = 80;
+            // 
+            // DescColumn
+            // 
+            this.DescColumn.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.Fill;
+            this.DescColumn.HeaderText = "Описание";
+            this.DescColumn.Name = "DescColumn";
+            this.DescColumn.ReadOnly = true;
+            // 
             // Window
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(800, 452);
+            this.Controls.Add(this.DataTable);
             this.Controls.Add(this.ButtonChooseFile);
             this.Controls.Add(this.LabelSave);
             this.Controls.Add(this.LabelChoose);
             this.Controls.Add(this.ButtonStart);
             this.Controls.Add(this.TextBoxSave);
-            this.Controls.Add(this.RTBOutput);
-            this.Controls.Add(this.MiddlePanel);
             this.Controls.Add(this.TextBoxChoose);
             this.Controls.Add(this.TopPanel);
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
@@ -205,6 +205,7 @@ namespace ParserGUI
             this.Text = "DocParser";
             this.LocationChanged += new System.EventHandler(this.Window_LocationChanged);
             this.TopPanel.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)(this.DataTable)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -214,16 +215,16 @@ namespace ParserGUI
 
         private System.Windows.Forms.Panel TopPanel;
         private System.Windows.Forms.Button ButtonFile;
-        private System.Windows.Forms.Button ButtonSettings;
-        private System.Windows.Forms.Button ButtonHelp;
         private System.Windows.Forms.TextBox TextBoxChoose;
-        private System.Windows.Forms.Panel MiddlePanel;
-        private System.Windows.Forms.RichTextBox RTBOutput;
         private System.Windows.Forms.TextBox TextBoxSave;
         private System.Windows.Forms.Button ButtonStart;
         private System.Windows.Forms.Button ButtonChooseFile;
         private System.Windows.Forms.Label LabelChoose;
         private System.Windows.Forms.Label LabelSave;
+        private System.Windows.Forms.DataGridView DataTable;
+        private System.Windows.Forms.DataGridViewTextBoxColumn ParamColumn;
+        private System.Windows.Forms.DataGridViewTextBoxColumn RangeColumn;
+        private System.Windows.Forms.DataGridViewTextBoxColumn DescColumn;
     }
 }
 
