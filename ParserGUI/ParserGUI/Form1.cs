@@ -11,7 +11,6 @@ using System.Windows.Forms;
 using ParserCore;
 using System.Xml;
 
-
 namespace ParserGUI
 {
     public partial class Window : Form
@@ -22,18 +21,12 @@ namespace ParserGUI
         }
 
         OpenFileDialog ofd = new OpenFileDialog();
-        string Result;
         WaitForm WaitForm2;
         Parser parser;
 
         private void TextBoxChoose_TextChanged(object sender, EventArgs e)
         {
             TextBoxChoose.BackColor = SystemColors.Window;
-        }
-
-        private void CheckBoxSave_CheckedChanged(object sender, EventArgs e)
-        {
-
         }
 
         private void TextBoxSave_TextChanged(object sender, EventArgs e)
@@ -59,7 +52,7 @@ namespace ParserGUI
                     NewFile.Close();
                     MessageBox.Show("Файл успешно сохранен!");
                 }
-                else if(sfd.FileName != "" && fileExtension == ".mdb")
+                else if (sfd.FileName != "" && fileExtension == ".mdb")
                 {
                     var tableName = ofd.FileName.Split('\\');
                     DbService dbService = new DbService(sfd.FileName, tableName.Last().ToLower().Replace(".pdf", ""));
@@ -84,35 +77,31 @@ namespace ParserGUI
                 }
             }
         }
-        
+
         private async void ButtonStart_Click(object sender, EventArgs e)
         {
             if (ofd.FileName != "")
             {
-				        WaitForm2 = new WaitForm();
+				WaitForm2 = new WaitForm();
                 CenterWaitFormToWindow();
                 WaitForm2.Show(this);
+
                 await Task.Run(() => {
-                
                     parser = new Parser(ofd.FileName);
-                    RTFResult result = new RTFResult(parser.GetData());
-                    Result = result.Serialize();
                 }
                 );
-                RTBOutput.Rtf = Result;
+
+                foreach (Data.Parameter param in parser.GetData().ReadAll())
+                {
+                    DataTable.Rows.Add(param.Name, param.Range, param.Description);
+                }
+                DataTable.AutoResizeColumns();
+                DataTable.AllowUserToAddRows = false;
                 WaitForm2.Close();
             }
             else
             {
                 MessageBox.Show("Вы не выбрали файл!");
-            }
-        }
-
-        private void RTBOutput_TextChanged(object sender, EventArgs e)
-        {
-            if (RTBOutput.ReadOnly)
-            {
-                RTBOutput.BackColor = SystemColors.Window;
             }
         }
 
@@ -132,13 +121,14 @@ namespace ParserGUI
                 m_PreviousLocation = Location;
             }
         }
-        
         private void CenterWaitFormToWindow()
         {
             WaitForm2.Location = new Point(
             this.Location.X + this.Width / 2 - WaitForm2.ClientSize.Width / 2,
             this.Location.Y + this.Height / 2 - WaitForm2.ClientSize.Height / 2);
         }
+
+        
     }
 }
 
