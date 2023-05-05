@@ -1,4 +1,5 @@
-﻿using System;
+﻿using ParserCore;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Data.OleDb;
@@ -14,9 +15,11 @@ namespace ParserGUI
     {
         private string connectString;
         private OleDbConnection myConnection;
-        public DbService(string path)
+        private string tableName;
+        public DbService(string path, string tableName)
         {
             this.connectString = $"Provider=Microsoft.Jet.OLEDB.4.0;Data Source={path};";
+            this.tableName = tableName;
         }
 
         public void ConnectToDb()
@@ -30,22 +33,20 @@ namespace ParserGUI
             myConnection.Close();
         }
 
-        public void writeTableToDb()
+        public void writeParamsToDb(Data data)
         {
-            string[,] tables_data = { { "I", "am", "Hello", "World", "Yeah", "Right" }, { "No", "I", "am", "real", "Hello", "World" } };
-            string[] tables_names = { "Option1", "Option2" };
-            for (int i = 0; i < tables_data.GetLength(0); i++)
+            ConnectToDb();
+            string q = $"CREATE TABLE [{this.tableName}] ([name] TEXT, [range] TEXT, [description] TEXT)";
+            OleDbCommand command = new OleDbCommand(q, myConnection);
+            command.ExecuteNonQuery();
+            foreach (Data.Parameter param in data.ReadAll())
             {
-                for (int j = 0; j < tables_data.GetLength(1); j++)
-                {
-                    string q = $"INSERT INTO {tables_names[i]} (test_string) VALUES ('{tables_data[i, j]}');";
-                    Console.WriteLine(q);
-                    OleDbCommand command = new OleDbCommand(q, myConnection);
-                    command.ExecuteNonQuery();
-                }
+                string qq = $"INSERT INTO [{this.tableName}] ([name], [range], [description]) VALUES ('{param.Name}', '{param.Range}', '{param.Description}');";
+                OleDbCommand command_ = new OleDbCommand(qq, myConnection);
+                command_.ExecuteNonQuery();
             }
-
-
+            DisconnectFromDb();
         }
+
     }
 }

@@ -15,7 +15,6 @@ namespace ParserGUI
         public WaitForm()
         {
             InitializeComponent();
-            this.CenterToParent();
         }
     }
 }

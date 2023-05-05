@@ -13,7 +13,7 @@ namespace ParserCore
         private readonly int _minTableRows = 2;
         private readonly PageArea _page;
 
-        public SimpleTableFilter(PageArea page,float minTableWidth = 0.7f, int minTableRows = 2)
+        public SimpleTableFilter(PageArea page,float minTableWidth = 0.5f, int minTableRows = 2)
         {
             _minTableRows = minTableRows;
             _minTableWidth = minTableWidth;

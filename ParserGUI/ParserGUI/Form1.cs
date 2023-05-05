@@ -9,10 +9,7 @@ using System.IO;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using ParserCore;
-<<<<<<< Updated upstream
-=======
 using System.Xml;
->>>>>>> Stashed changes
 
 namespace ParserGUI
 {
@@ -25,7 +22,7 @@ namespace ParserGUI
 
         OpenFileDialog ofd = new OpenFileDialog();
         WaitForm WaitForm2;
-        IParser parser;
+        Parser parser;
 
         private void TextBoxChoose_TextChanged(object sender, EventArgs e)
         {
@@ -45,25 +42,22 @@ namespace ParserGUI
                 sfd.Filter = "Data base file|*.mdb|XML|*.xml";
                 sfd.Title = "Сохранить результат";
                 sfd.ShowDialog();
-
-                if (sfd.FileName != "")
+                string fileExtension = Path.GetExtension(sfd.FileName);
+                if (sfd.FileName != "" && fileExtension != ".mdb")
                 {
                     TextBoxSave.Text = sfd.FileName;
                     FileStream NewFile = File.OpenWrite(sfd.FileName);
                     NewFile.SetLength(0); // C# почему-то не стирает содержимое уже существующих файлов, если они открыты для записи
-                    XMLGenerator.ToFile(parser.GetTables(), NewFile);
+                    XMLGenerator.WriteData(parser.GetData(), NewFile);
                     NewFile.Close();
                     MessageBox.Show("Файл успешно сохранен!");
                 }
-<<<<<<< Updated upstream
-=======
                 else if (sfd.FileName != "" && fileExtension == ".mdb")
                 {
                     var tableName = ofd.FileName.Split('\\');
                     DbService dbService = new DbService(sfd.FileName, tableName.Last().ToLower().Replace(".pdf", ""));
                     dbService.writeParamsToDb(parser.GetData());
                 }
->>>>>>> Stashed changes
             }
             else
             {
@@ -83,28 +77,11 @@ namespace ParserGUI
                 }
             }
         }
-<<<<<<< Updated upstream
-=======
 
->>>>>>> Stashed changes
         private async void ButtonStart_Click(object sender, EventArgs e)
         {
             if (ofd.FileName != "")
             {
-<<<<<<< Updated upstream
-				        WaitForm2 = new WaitForm();
-                WaitForm2.Show(this);
-                await Task.Run(() =>
-				        {
-					          DbService dbService = new DbService("YOUR .mdb FILE");
-					          parser = new TabulaParser(ofd.FileName, new NearestNeighbourTextParser());
-                    parser.Parse();
-                    RTFResult result = new RTFResult(parser);
-                    Result = result.Serialize();
-                }
-                );
-                RTBOutput.Text = Result;
-=======
 				WaitForm2 = new WaitForm();
                 CenterWaitFormToWindow();
                 WaitForm2.Show(this);
@@ -120,7 +97,6 @@ namespace ParserGUI
                 }
                 DataTable.AutoResizeColumns();
                 DataTable.AllowUserToAddRows = false;
->>>>>>> Stashed changes
                 WaitForm2.Close();
             }
             else
@@ -145,8 +121,6 @@ namespace ParserGUI
                 m_PreviousLocation = Location;
             }
         }
-<<<<<<< Updated upstream
-=======
         private void CenterWaitFormToWindow()
         {
             WaitForm2.Location = new Point(
@@ -155,7 +129,6 @@ namespace ParserGUI
         }
 
         
->>>>>>> Stashed changes
     }
 }
 
