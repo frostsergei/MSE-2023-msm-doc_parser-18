@@ -14,6 +14,7 @@ using UglyToad.PdfPig.Graphics.Colors;
 using System.Drawing;
 using UglyToad.PdfPig.Graphics;
 using System.Runtime.InteropServices.WindowsRuntime;
+using static ParserCore.Data;
 
 namespace ParserCore
 {
@@ -47,6 +48,68 @@ namespace ParserCore
             var documentContentParser = new DocumentContentParser(document);
             _pageNumbers = documentContentParser.Parse();
         }
+
+        private Tuple<string,string> ProcessDescription(string desc)
+        {
+            var openCurvyBracketIndex = desc.IndexOf('{');
+            var closeCurvyBracketIndex = desc.IndexOf('}');
+           
+            var hasRange = openCurvyBracketIndex != -1 && closeCurvyBracketIndex != -1;
+           
+            string range = "";
+            try
+            {
+                if (hasRange)
+                {
+                    range = desc.Substring(openCurvyBracketIndex + 1, closeCurvyBracketIndex - openCurvyBracketIndex - 1);
+                    desc = desc.Substring(0, openCurvyBracketIndex) + desc.Substring(closeCurvyBracketIndex + 1, desc.Length - closeCurvyBracketIndex - 1);
+                    var openSqBracketIndex = desc.IndexOf('[');
+                    var closeSqBracketIndex = desc.IndexOf(']');
+                    var hasUnit = hasRange && openSqBracketIndex != -1 && closeSqBracketIndex != -1;
+                    if (hasUnit && false)
+                    {
+                        range += " " + desc.Substring(openSqBracketIndex, closeSqBracketIndex - openSqBracketIndex + 1);
+                        desc = desc.Substring(0, openSqBracketIndex) + desc.Substring(closeSqBracketIndex + 1, desc.Length - closeSqBracketIndex - 1);
+                    }
+                }
+
+                List<int> dashIndices = desc.ToList().Select((c, i) =>
+                {
+                    return c == '-' ? i : -1;
+                }).Where(index =>
+                {
+                    if (index == -1) return false;
+                    if (index == 0 && index == desc.Length - 1) return false;
+                    if (desc[index - 1] != ' ' && desc[index + 1] != ' ')
+                    {
+                        return true;
+                    }
+                    return false;
+                }).ToList();
+                if (dashIndices.Count > 0)
+                {
+                    StringBuilder sb = new StringBuilder();
+                    sb.Append(desc.Substring(0, dashIndices[0]));
+                    for (int i = 0; i < dashIndices.Count; i++)
+                    {
+                        var end = desc.Length - 1;
+                        if (i + 1 < dashIndices.Count)
+                        {
+                            end = dashIndices[i + 1];
+                        }
+                        sb.Append(desc.Substring(dashIndices[i] + 1, end - dashIndices[i] - 1));
+                    }
+                    desc = sb.ToString();
+                }
+            }
+            catch(Exception e)
+            {
+                Console.WriteLine(e.Message);
+            }
+
+            return new Tuple<string, string>(range, desc);
+        }
+
 
         public bool ParseLineParams(List<int> page_numbers)
         {
@@ -110,11 +173,12 @@ namespace ParserCore
                     if(names.Count() > 0)
                         got_params = true;
                     foreach(var name in names)
-                    { 
+                    {
+                        var rangedesc = ProcessDescription(parameter.Item2.Replace("\r", "").Replace('\n', ' ').Trim());
                         data.WriteElem(new Data.Parameter {
                             Name = name,
-                            Description = parameter.Item2.Replace("\r","").Replace('\n',' ').Trim(),
-                            Range = ""
+                            Description = rangedesc.Item2,
+                            Range = rangedesc.Item1
                         });
                     }
                 }
@@ -215,7 +279,9 @@ namespace ParserCore
                                 case 1:
                                     for(int j = 0; j < _params.Count; ++j){
                                         Data.Parameter param = _params[j];
-                                        param.Description = cell_text;
+                                        var rangedesc = ProcessDescription(cell_text);
+                                        param.Description = rangedesc.Item2;
+                                        param.Range = rangedesc.Item1;
                                         _params[j] = param;
                                     }
                                     break;
@@ -323,7 +389,9 @@ namespace ParserCore
                                 case 2:
                                     for(int j = 0; j < _params.Count; ++j){
                                         Data.Parameter param = _params[j];
-                                        param.Description = cell_text;
+                                        var rangedesc = ProcessDescription(cell_text);
+                                        param.Description = rangedesc.Item2;
+                                        param.Range = rangedesc.Item1;
                                         _params[j] = param;
                                     }
                                     break;
@@ -593,8 +661,9 @@ namespace ParserCore
                             string param = w.Text.Replace(",", "");
                             Data.Parameter parameter = new Data.Parameter();
                             parameter.Name = param;
-                            parameter.Range = "";
-                            parameter.Description = description;
+                            var rangedesc = ProcessDescription(description);
+                            parameter.Description = rangedesc.Item2;
+                            parameter.Range = rangedesc.Item1;
                             _params.Add(parameter);
                         }
                         end_row:;
@@ -670,7 +739,9 @@ namespace ParserCore
                                         if(!is_blacklisted && pname.Any(c => Char.IsDigit(c) || Char.IsLetter(c))){
                                             Data.Parameter param = new Data.Parameter();
                                             param.Name = pname.Trim().Replace("∆∆", "∆"); // не знаю почему так возникает в СПГ742, pdfpig выдаёт такое
-                                            param.Description = param_desc;
+                                            var rangedesc = ProcessDescription(param_desc);
+                                            param.Description = rangedesc.Item2;
+                                            param.Range = rangedesc.Item1;
                                             _params.Add(param);
                                         }
                                     }
