@@ -82,7 +82,8 @@ namespace ParserGUI
         {
             if (ofd.FileName != "")
             {
-				WaitForm2 = new WaitForm();
+                DataTable.Rows.Clear();
+                WaitForm2 = new WaitForm();
                 CenterWaitFormToWindow();
                 WaitForm2.Show(this);
 
