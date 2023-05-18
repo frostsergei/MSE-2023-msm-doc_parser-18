@@ -51,7 +51,7 @@ jobs:
           tag_name: ${{ github.ref }}
 #                   tag_name: ${{ github.ref }}
 #         release_name: Release ${{ github.ref }}
-          release_name: Release ${{ github.ref }}
+          release_name: Release 100500 ${{ github.sha }}-${{ steps.date.outputs.date }} 
           draft: false
           prerelease: false
           auto_increment_type: path
