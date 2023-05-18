@@ -9,8 +9,8 @@ on:
     branches: [ dev ]
 jobs:
   build-and-test:
-#     runs-on: windows-latest
-    runs-on: self-hosted
+    runs-on: windows-latest
+#     runs-on: self-hosted
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v2
