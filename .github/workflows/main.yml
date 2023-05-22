@@ -30,9 +30,10 @@ jobs:
           $lastTag = git tag -l --sort=-v:refname "v1.0.*" | sort -V | Select-Object -Last 1
           $tagParts = $lastTag -split '\.'
           $thirdPart = [int]$tagParts[2] + 1
-          $newVersionTag = ($tagParts[0..1] -join '.') + ".$thirdPart"
-          echo "NEW_VERSION_TAG=$newVersionTag" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
-
+          $newTag = ($tagParts[0..1] -join '.') + ".$thirdPart"
+          echo "NEW_TAG=$newTag" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+          echo $newTag
+          
       - name: Setup .NET Framework
         uses: actions/setup-dotnet@v1
         with:
@@ -65,9 +66,9 @@ jobs:
         with:
 #           tag_name: release-${{ github.run_number }}-${{ steps.date.outputs.date }}
 #           release_name: "Release: "
-          tag_name: ${{ env.NEW_VERSION_TAG }}
-          release_name: "Release ${{ env.NEW_VERSION_TAG }}"
-          body: "Build info: Version: ${{ env.NEW_VERSION_TAG }}, from commit SHA: ${{ github.sha }}"
+          tag_name: ${{ env.NEW_TAG }}
+          release_name: "Release ${{ env.NEW_TAG }}"
+          body: "Build info: Version: ${{ env.NEW_TAG }}, from commit SHA: ${{ github.sha }}"
           draft: false
           prerelease: false
 
