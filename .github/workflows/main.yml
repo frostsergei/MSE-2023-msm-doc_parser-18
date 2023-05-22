@@ -29,6 +29,7 @@ jobs:
         run: |
           $lastTag = git tag -l --sort=-v:refname "v1.0.*" | sort -V | Select-Object -Last 1
           echo $lastTag.Length
+          echo $lastTag
           echo ($lastTag.Length -lt 5)
           if ($lastTag.Length -lt 5) {
             $newTag = "v1.0.1"
