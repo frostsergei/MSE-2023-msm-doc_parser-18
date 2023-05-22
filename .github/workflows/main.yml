@@ -28,12 +28,15 @@ jobs:
         id: get_latest_tag
         run: |
           $lastTag = git tag -l --sort=-v:refname "v1.0.*" | sort -V | Select-Object -Last 1
-          echo $lastTag
-          $tagParts = $lastTag -split '\.'
-          echo $tagParts
-          $thirdPart = [int]$tagParts[2] + 1
-          echo $thirdPart
-          $newTag = ($tagParts[0..1] -join '.') + ".$thirdPart"
+          if ($lastTag.Length -le 3) {
+            $newTag = "v1.0.1"
+          } else {
+            $tagParts = $lastTag -split '\.'
+            echo $tagParts
+            $thirdPart = [int]$tagParts[2] + 1
+            echo $thirdPart
+            $newTag = ($tagParts[0..1] -join '.') + ".$thirdPart"
+          }
           echo "NEW_TAG=$newTag" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
           echo $newTag
           
