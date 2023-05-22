@@ -65,9 +65,9 @@ jobs:
         with:
 #           tag_name: release-${{ github.run_number }}-${{ steps.date.outputs.date }}
 #           release_name: "Release: "
-          tag_name: ${{ env.get_latest_tag }}
-          release_name: "Release ${{ env.get_latest_tag }}"
-          body: "Build info: Version: ${{ env.get_latest_tag }}, SHA: ${{ github.sha }}"
+          tag_name: ${{ env.NEW_VERSION_TAG }}
+          release_name: "Release ${{ env.NEW_VERSION_TAG }}"
+          body: "Build info: Version: ${{ env.NEW_VERSION_TAG }}, from commit SHA: ${{ github.sha }}"
           draft: false
           prerelease: false
 
