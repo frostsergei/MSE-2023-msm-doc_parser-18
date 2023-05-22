@@ -28,7 +28,7 @@ jobs:
         id: get_latest_tag
         run: |
           $lastTag = git tag -l --sort=-v:refname "v1.0.*" | sort -V | Select-Object -Last 1
-          if ($lastTag.Length -le 3) {
+          if ($lastTag.Length -le 6) {
             $newTag = "v1.0.1"
           } else {
             $tagParts = $lastTag -split '\.'
