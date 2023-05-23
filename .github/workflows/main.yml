@@ -25,13 +25,22 @@ jobs:
       - name: Install python script
         run: |
           gci
-          python -m pip install --upgrade pip
-          pip install gitpython
-          gci
-          python -m pip install --upgrade pip
-          pip install gitpython
-          python -c "import os; print(os.getcwd());import git; repo = git.Repo(search_parent_directories=True);sha = repo.head.object.hexsha;print(repo, sha, git);subprocess.check_output(['git', 'rev-parse', '--short', 'HEAD']).decode('ascii').strip()"
           
+          python -m venv ./venv
+          .\venv\Scripts\Activate.ps1
+          pip install gitpython
+          python -m pip install --upgrade pip
+          cd ParserGUI
+          $env:GIT_TAG = python -c "
+          import subprocess
+
+          tag = subprocess.check_output(['git', 'describe', '--abbrev=0', '--tags']).decode('ascii').strip()
+          tag = tag[1:] if tag.startswith('v') else tag
+          major, minor, patch = map(int, tag.split('.')) # различные части версии
+          patch += 1 #инкрементируем патч, это третья цифра
+          new_tag = '.'.join(map(str, [major, minor, patch]))
+          print(new_tag)
+          "
           
       - name: Setup .NET Framework
         uses: actions/setup-dotnet@v1
@@ -63,9 +72,9 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} 
         with:
-          tag_name: ${{ steps.version.outputs.version }}
-          release_name: "Release ${{ steps.version.outputs.version }}"
-          body: "Build info: Version: ${{ steps.version.outputs.version }}, from commit SHA: ${{ github.sha }}"
+          tag_name: ${{ GIT_TAG }}
+          release_name: "Release ${{ GIT_TAG }}"
+          body: "Build info: Version: ${{ GIT_TAG }}, from commit SHA: ${{ github.sha }}"
           draft: false
           prerelease: false
 
