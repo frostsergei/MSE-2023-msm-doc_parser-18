@@ -22,20 +22,19 @@ jobs:
         uses: actions/setup-python@v1
         with:
           python-version: '3.x'
+        run: |
+          gci
+          python -m pip install --upgrade pip
+          pip install gitpython
       - name: Install python script
         run: |
           gci
           python -m pip install --upgrade pip
           pip install gitpython
-          $text = @"
-          import git
-          repo = git.Repo(search_parent_directories=True)
-          sha = repo.head.object.hexsha
-          print(repo, sha, git)
-          def get_git_revision_short_hash() -> str:
-              return subprocess.check_output(['git', 'rev-parse', '--short', 'HEAD']).decode('ascii').strip()
-          "@ | Out-File $text -FilePath .\script.py
-          python script.py
+          python -c "import os; print(os.getcwd())"
+          python -c "import git; repo = git.Repo(search_parent_directories=True);sha = repo.head.object.hexsha;"
+          python -c "print(repo, sha, git);subprocess.check_output(['git', 'rev-parse', '--short', 'HEAD']).decode('ascii').strip()"
+          
           
       - name: Setup .NET Framework
         uses: actions/setup-dotnet@v1
