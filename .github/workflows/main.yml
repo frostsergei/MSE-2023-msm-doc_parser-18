@@ -32,7 +32,9 @@ jobs:
           python -m pip install --upgrade pip
           cd ParserGUI
           
-          $env:GIT_TAG = python -c "
+
+          
+          $env:GIT_TAG = $(python -c "
           import git
 
           repo = git.Repo(search_parent_directories=True)
@@ -48,7 +50,10 @@ jobs:
           patch += 1
           new_tag = '.'.join(map(str, [major, minor, patch]))
           print(new_tag)
-          "
+          ")
+
+          echo "Git tag added in env!"
+          echo $env:GIT_TAG
 
 
           
