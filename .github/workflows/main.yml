@@ -45,7 +45,7 @@ jobs:
           
           
       - name: Create an incremental release
-      uses: aurestic/incrementarl-create-release@master
+        uses: aurestic/incrementarl-create-release@master
         with:
           flag_branch: true
           message: Bump version
