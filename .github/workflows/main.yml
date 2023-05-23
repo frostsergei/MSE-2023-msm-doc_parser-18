@@ -24,25 +24,32 @@ jobs:
           $date = Get-Date -Format "yyyyMMddHHmmss"
           echo "::set-output name=date::$date"
 
-      - name: Get latest version tag
-        id: get_latest_tag
-        run: |
-          $lastTag = git tag -l --sort=-v:refname "v1.0.*" | sort -V | Select-Object -Last 1
-          echo $lastTag.Length
-          echo $lastTag
-          echo ($lastTag.Length -lt 5)
-          if ($lastTag.Length -lt 5) {
-            $newTag = "v1.0.1"
-          } else {
-            $tagParts = $lastTag -split '\.'
-            echo $tagParts
-            $thirdPart = [int]$tagParts[2] + 1
-            echo $thirdPart
-            $newTag = ($tagParts[0..1] -join '.') + ".$thirdPart"
-          }
-          echo "NEW_TAG=$newTag" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
-          echo $newTag
+#       - name: Get latest version tag
+#         id: get_latest_tag
+#         run: |
+#           $lastTag = git tag -l --sort=-v:refname "v1.0.*" | sort -V | Select-Object -Last 1
+#           echo $lastTag.Length
+#           echo $lastTag
+#           echo ($lastTag.Length -lt 5)
+#           if ($lastTag.Length -lt 5) {
+#             $newTag = "v1.0.1"
+#           } else {
+#             $tagParts = $lastTag -split '\.'
+#             echo $tagParts
+#             $thirdPart = [int]$tagParts[2] + 1
+#             echo $thirdPart
+#             $newTag = ($tagParts[0..1] -join '.') + ".$thirdPart"
+#           }
+#           echo "NEW_TAG=$newTag" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+#           echo $newTag
           
+          
+      - name: Get next version
+        uses: reecetech/version-increment@2023.4.1
+        id: version
+        with:
+          scheme: semver
+          increment: patch
       - name: Setup .NET Framework
         uses: actions/setup-dotnet@v1
         with:
@@ -73,11 +80,9 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} 
         with:
-#           tag_name: release-${{ github.run_number }}-${{ steps.date.outputs.date }}
-#           release_name: "Release: "
-          tag_name: ${{ env.NEW_TAG }}
-          release_name: "Release ${{ env.NEW_TAG }}"
-          body: "Build info: Version: ${{ env.NEW_TAG }}, from commit SHA: ${{ github.sha }}"
+          tag_name: ${{ steps.version.outputs.version }}
+          release_name: "Release ${{ steps.version.outputs.version }}"
+          body: "Build info: Version: ${{ steps.version.outputs.version }}, from commit SHA: ${{ github.sha }}"
           draft: false
           prerelease: false
 
