@@ -17,32 +17,6 @@ jobs:
         uses: actions/checkout@v2
         with:
           ref: dev
-      - name: Get Date
-        id: date
-        shell: pwsh
-        run: |
-          $date = Get-Date -Format "yyyyMMddHHmmss"
-          echo "::set-output name=date::$date"
-
-#       - name: Get latest version tag
-#         id: get_latest_tag
-#         run: |
-#           $lastTag = git tag -l --sort=-v:refname "v1.0.*" | sort -V | Select-Object -Last 1
-#           echo $lastTag.Length
-#           echo $lastTag
-#           echo ($lastTag.Length -lt 5)
-#           if ($lastTag.Length -lt 5) {
-#             $newTag = "v1.0.1"
-#           } else {
-#             $tagParts = $lastTag -split '\.'
-#             echo $tagParts
-#             $thirdPart = [int]$tagParts[2] + 1
-#             echo $thirdPart
-#             $newTag = ($tagParts[0..1] -join '.') + ".$thirdPart"
-#           }
-#           echo "NEW_TAG=$newTag" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
-#           echo $newTag
-          
           
       - name: Set up Python
         uses: actions/setup-python@v1
@@ -53,7 +27,15 @@ jobs:
           gci
           python -m pip install --upgrade pip
           pip install gitpython
-          
+          $text = @"
+          import git
+          repo = git.Repo(search_parent_directories=True)
+          sha = repo.head.object.hexsha
+          print(repo, sha, git)
+          def get_git_revision_short_hash() -> str:
+              return subprocess.check_output(['git', 'rev-parse', '--short', 'HEAD']).decode('ascii').strip()
+          "@ | Out-File $text -FilePath .\script.py
+          python script.py
           
       - name: Setup .NET Framework
         uses: actions/setup-dotnet@v1
