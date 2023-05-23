@@ -72,9 +72,9 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} 
         with:
-          tag_name: ${{ GIT_TAG }}
-          release_name: "Release ${{ GIT_TAG }}"
-          body: "Build info: Version: ${{ GIT_TAG }}, from commit SHA: ${{ github.sha }}"
+          tag_name: ${{ env.GIT_TAG }}
+          release_name: "Release ${{ env.GIT_TAG }}"
+          body: "Build info: Version: ${{ env.GIT_TAG }}, from commit SHA: ${{ github.sha }}"
           draft: false
           prerelease: false
 
