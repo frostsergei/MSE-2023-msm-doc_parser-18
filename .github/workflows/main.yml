@@ -44,15 +44,17 @@ jobs:
 #           echo $newTag
           
           
-      - name: Create an incremental release
-        uses: aurestic/incrementarl-create-release@master
+      - name: Set up Python
+        uses: actions/setup-python@v1
         with:
-          flag_branch: true
-          message: Bump version
-          prev_tag: 'v'
-          update_odoo_module_version: true
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          python-version: '3.x'
+      - name: Install dependencies
+        run: |
+          gci
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          python update.py
+          dir
           
           
       - name: Setup .NET Framework
