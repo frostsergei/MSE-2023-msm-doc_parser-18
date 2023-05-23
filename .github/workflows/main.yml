@@ -30,9 +30,7 @@ jobs:
           gci
           python -m pip install --upgrade pip
           pip install gitpython
-          python -c "import os; print(os.getcwd())"
-          python -c "import git; repo = git.Repo(search_parent_directories=True);sha = repo.head.object.hexsha;"
-          python -c "print(repo, sha, git);subprocess.check_output(['git', 'rev-parse', '--short', 'HEAD']).decode('ascii').strip()"
+          python -c "import os; print(os.getcwd());import git; repo = git.Repo(search_parent_directories=True);sha = repo.head.object.hexsha;print(repo, sha, git);subprocess.check_output(['git', 'rev-parse', '--short', 'HEAD']).decode('ascii').strip()"
           
           
       - name: Setup .NET Framework
