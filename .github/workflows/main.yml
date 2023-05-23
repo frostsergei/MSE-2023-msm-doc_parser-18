@@ -31,12 +31,17 @@ jobs:
           pip install gitpython
           python -m pip install --upgrade pip
           cd ParserGUI
+          
           $env:GIT_TAG = python -c "
           import git
 
           repo = git.Repo(search_parent_directories=True)
           tags = sorted(repo.tags, key=lambda t: t.commit.committed_datetime)
-          latest_tag = str(tags[-1])
+
+          if tags:
+              latest_tag = str(tags[-1])
+          else:
+              latest_tag = 'v1.0.0'
 
           latest_tag = latest_tag[1:] if latest_tag.startswith('v') else latest_tag
           major, minor, patch = map(int, latest_tag.split('.'))
@@ -44,6 +49,7 @@ jobs:
           new_tag = '.'.join(map(str, [major, minor, patch]))
           print(new_tag)
           "
+
 
           
       - name: Setup .NET Framework
