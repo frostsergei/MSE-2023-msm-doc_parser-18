@@ -34,7 +34,7 @@ jobs:
           
 
           
-          $env:GIT_TAG = $(python -c "
+          $env:OUR_TAG = $(python -c "
           import git
 
           repo = git.Repo(search_parent_directories=True)
@@ -79,18 +79,19 @@ jobs:
           msbuild /p:Configuration=Release ParserGUI.sln
           Get-ChildItem -Verbose
           Get-ChildItem -Verbose
+          echo $env:OUR_TAG
 
      
       - name: Create Release
         id: create_release
         uses: zendesk/action-create-release@v1
         env:
-          GIT_TAG: ${{ env.GIT_TAG }}
+          OUR_TAG: ${{ env.OUR_TAG }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} 
         with:
-          tag_name: ${{ env.GIT_TAG }}
-          release_name: "Release ${{ env.GIT_TAG }}"
-          body: "Build info: Version: ${{ env.GIT_TAG }}, from commit SHA: ${{ github.sha }}"
+          tag_name: ${{ env.OUR_TAG }}
+          release_name: "Release ${{ env.OUR_TAG }}"
+          body: "Build info: Version: ${{ env.OUR_TAG }}, from commit SHA: ${{ github.sha }}"
           draft: false
           prerelease: false
 
