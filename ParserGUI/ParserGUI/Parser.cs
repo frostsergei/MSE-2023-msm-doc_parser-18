@@ -41,6 +41,12 @@ namespace ParserCore
                 else if(ParseStringParams(new List<int>{pnum})){}
                 else if(ParseParagraphParams(new List<int>{pnum})){}
             }
+
+            for(int i = 0; i < data.ReadAll().Count; ++i){
+                Parameter p = data.ReadElem(i);
+                p = PostProcessParameter(p);
+                data.WriteElem(p, i); 
+            }
         }
 
         public void ParseContent(PdfDocument document)
@@ -1002,7 +1008,31 @@ namespace ParserCore
                 }
                 return pages.ToList();
             }
-          
+        }
+
+        Parameter PostProcessParameter(Parameter p)
+        {
+            string desc = p.Description;
+
+            // Удаление идущих "подряд" (через пробельные символы) точек
+            for(int i = 0; (i = desc.IndexOf('.', i)) != -1; ++i){
+                int j = i + 1;
+                if(j >= desc.Length)
+                    break;
+                while(j < desc.Length - 1 && Char.IsWhiteSpace(desc[j]))
+                    ++j;
+                //Console.WriteLine("between " + i + "("+ desc[i] + ") and " + j + "(" + desc[j] + ")");
+                if(desc[j] == '.')
+                    desc = desc.Remove(i + 1, j - i);
+            }
+            // Удаление идущих подряд точек и пробелов
+            while(desc.IndexOf("..") != -1)
+                desc = desc.Replace("..", ".");
+            while(desc.IndexOf("  ") != -1)
+                desc = desc.Replace("  ", " ");
+
+            p.Description = desc;
+            return p;
         }
     }
 }
