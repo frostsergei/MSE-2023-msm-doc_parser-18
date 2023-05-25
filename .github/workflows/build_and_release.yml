@@ -10,7 +10,6 @@ on:
 jobs:
   build-and-test:
     runs-on: windows-latest
-#     runs-on: self-hosted
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v2
@@ -32,7 +31,7 @@ jobs:
           cd ParserGUI
           nuget restore
         
-     - name: Build Solution
+      - name: Build Solution
         run: |
           (Get-Item .).FullName
           Get-ChildItem
