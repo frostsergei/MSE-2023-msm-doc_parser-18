@@ -1,30 +1,108 @@
-name: Build Project222
+name: Build Project111
+
 
 on:
-  workflow_dispatch:
+   workflow_dispatch:  
+ 
   push:
-    branches: [ dev ]
+    branches: [ main ]
   pull_request:
-    branches: [ dev ]
-
+    branches: [ main ]
 jobs:
-  build:
-
-    runs-on: ubuntu-latest
-
+  build-and-test:
+    runs-on: windows-latest
+#     runs-on: self-hosted
     steps:
-    - uses: actions/checkout@v3
-    - name: Setup .NET
-      uses: actions/setup-dotnet@v3
-      with:
-        dotnet-version: 6.0.x
-    - name: Restore dependencies
-      run: dotnet restore
-    - name: Install Tabula-Sharp11
-      run: dotnet add package Tabula --version 0.1.3
-    - name: Install Tabula-Sharp
-      run: dotnet add package Tabula-Sharp
-    - name: Build
-      run: dotnet build --no-restore
-    - name: Test
-      run: dotnet test --no-build --verbosity normal
+      - name: Checkout Repository
+        uses: actions/checkout@v2
+        with:
+         ref: dev
+          
+      - name: Set up Python
+        uses: actions/setup-python@v1
+        with:
+          python-version: '3.x'
+
+      - name: Setup .NET Framework
+        uses: actions/setup-dotnet@v1
+        with:
+          dotnet-version: 5.0.x
+
+      - name: Restore NuGet Packages
+        run: |
+          cd ParserGUI
+          nuget restore
+        
+     - name: Build Solution
+        run: |
+          (Get-Item .).FullName
+          Get-ChildItem
+          cd ParserGUI
+          (Get-Item .).FullName
+          Get-ChildItem
+          $env:Path += ";C:\Program Files\Microsoft Visual Studio\2022\Enterprise\MSBuild\Current\bin"
+          msbuild /p:Configuration=Release ParserGUI.sln
+          Get-ChildItem -Verbose
+          Get-ChildItem -Verbose
+          echo "Git tag added in env!========================"
+          echo $env:OUR_TAG
+
+      - name: Install python script
+        run: |
+          gci
+          
+          python -m venv ./venv
+          .\venv\Scripts\Activate.ps1
+          pip install gitpython
+          python -m pip install --upgrade pip
+          cd ParserGUI
+          
+
+          
+          $env:OUR_TAG = $(python -c "
+          import git
+
+          repo = git.Repo(search_parent_directories=True)
+          tags = sorted(repo.tags, key=lambda t: t.commit.committed_datetime)
+
+          if tags:
+              latest_tag = str(tags[-1])
+          else:
+              latest_tag = 'v1.0.0'
+
+          latest_tag = latest_tag[1:] if latest_tag.startswith('v') else latest_tag
+          major, minor, patch = map(int, latest_tag.split('.'))
+          patch += 1
+          new_tag = '.'.join(map(str, [major, minor, patch]))
+          print(new_tag)
+          ")
+
+          echo "Git tag added in env!"
+          echo $env:OUR_TAG
+      - name: Create Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          OUR_TAG: ${{ env.OUR_TAG }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # This token is provided by Actions, you do not need to create your own token
+        with:
+          tag_name: ${{ steps.create_release.env.OUR_TAG }}
+          release_name: Release ${{ github.ref }}
+          body: |
+            "Build info: Version: ${{ env.OUR_TAG }} ${{ steps.create_release.env.OUR_TAG }}, from commit SHA: ${{ github.sha }}"
+            Changes in this Release
+            - First Change
+            - Second Change
+          draft: false
+          prerelease: false
+
+      - name: Upload Asset
+        id: upload-release-asset
+        uses: actions/upload-release-asset@v1.0.1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ParserGUI\ParserGUI\bin\Release\ParserGUI.exe
+          asset_name: ParserGUI.exe
+          asset_content_type: application/x-msdownload
