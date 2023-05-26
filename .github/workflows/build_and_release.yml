@@ -50,6 +50,8 @@ jobs:
           echo $env:OUR_TAG
 
       - name: Install python script
+        env:
+            tag_name: ${{ env.tag_name }}
         run: |
           gci
           
