@@ -8,7 +8,11 @@ on:
   pull_request:
     branches: [ main ]
 jobs:
+
   build-and-test:
+    env:
+             OUR_TAG: 'v1.0.0'
+
     runs-on: windows-latest
     steps:
       - name: Checkout Repository
@@ -21,29 +25,29 @@ jobs:
         with:
           python-version: '3.x'
 
-      - name: Setup .NET Framework
-        uses: actions/setup-dotnet@v1
-        with:
-          dotnet-version: 5.0.x
+#       - name: Setup .NET Framework
+#         uses: actions/setup-dotnet@v1
+#         with:
+#           dotnet-version: 5.0.x
 
-      - name: Restore NuGet Packages
-        run: |
-          cd ParserGUI
-          nuget restore
+#       - name: Restore NuGet Packages
+#         run: |
+#           cd ParserGUI
+#           nuget restore
         
-      - name: Build Solution
-        run: |
-          (Get-Item .).FullName
-          Get-ChildItem
-          cd ParserGUI
-          (Get-Item .).FullName
-          Get-ChildItem
-          $env:Path += ";C:\Program Files\Microsoft Visual Studio\2022\Enterprise\MSBuild\Current\bin"
-          msbuild /p:Configuration=Release ParserGUI.sln
-          Get-ChildItem -Verbose
-          Get-ChildItem -Verbose
-          echo "Git tag added in env!========================"
-          echo $env:OUR_TAG
+#       - name: Build Solution
+#         run: |
+#           (Get-Item .).FullName
+#           Get-ChildItem
+#           cd ParserGUI
+#           (Get-Item .).FullName
+#           Get-ChildItem
+#           $env:Path += ";C:\Program Files\Microsoft Visual Studio\2022\Enterprise\MSBuild\Current\bin"
+#           msbuild /p:Configuration=Release ParserGUI.sln
+#           Get-ChildItem -Verbose
+#           Get-ChildItem -Verbose
+#           echo "Git tag added in env!========================"
+#           echo $env:OUR_TAG
 
       - name: Install python script
         run: |
@@ -83,10 +87,10 @@ jobs:
         id: create_release
         uses: actions/create-release@v1
         env:
-          OUR_TAG: ${{ env.OUR_TAG }}
+#           OUR_TAG: ${{ env.OUR_TAG }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # This token is provided by Actions, you do not need to create your own token
         with:
-          tag_name: ${{ env.OUR_TAG }}
+          OUR_TAG: ${{ env.OUR_TAG }}
           release_name: Release ${{ github.ref }}
           body: |
             "Build info: Version: ${{ env.OUR_TAG }} ${{ steps.create_release.env.OUR_TAG }}, from commit SHA: ${{ github.sha }}"
