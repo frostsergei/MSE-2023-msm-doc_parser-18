@@ -5,6 +5,8 @@ on:
 
  
   push:
+    tags:
+        - 'v*' # Push events to matching v*, i.e. v1.0, v20.15.10
     branches: [ main ]
   pull_request:
     branches: [ main ]
@@ -88,7 +90,7 @@ jobs:
           tag_name: v1
           release_name: Release ${{ github.ref }}
           body: |
-            "Build info: Version: ${{ env.OUR_TAG }} ${{ steps.create_release.env.OUR_TAG }}, from commit SHA: ${{ github.sha }}"
+            "Build info: Version: ${{ env.tag_name }} ${{github.ref }}, from commit SHA: ${{ github.sha }}"
             Changes in this Release
             - First Change
             - Second Change
@@ -102,6 +104,6 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ParserGUI\ParserGUI\bin\Release\ParserGUI.exe
+          asset_path: readme.md#ParserGUI\ParserGUI\bin\Release\ParserGUI.exe
           asset_name: ParserGUI.exe
           asset_content_type: application/x-msdownload
