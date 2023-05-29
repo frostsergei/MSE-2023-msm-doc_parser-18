@@ -30,6 +30,14 @@ namespace ParserCore
         {
             _parameters.Add(element);
         }
-
+        public void WriteElem(Parameter element, int idx)
+        {
+            if(idx < _parameters.Count)
+                _parameters[idx] = element;
+            else{
+                _parameters.AddRange(Enumerable.Repeat(new Parameter(), idx - _parameters.Count - 1));
+                _parameters.Add(element);
+            }
+        }
     }
 }
