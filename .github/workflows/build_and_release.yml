@@ -10,8 +10,8 @@ on:
 jobs:
 
   build-and-test:
-    env:
-             tag_name: 'v1.0.5'
+#     env:
+#              tag_name: 'v1.0.5'
 
     runs-on: windows-latest
     steps:
