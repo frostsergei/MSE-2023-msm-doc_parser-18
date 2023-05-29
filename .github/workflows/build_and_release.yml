@@ -8,11 +8,7 @@ on:
   pull_request:
     branches: [ main ]
 jobs:
-
   build-and-test:
-#     env:
-#              tag_name: 'v1.0.5'
-
     runs-on: windows-latest
     steps:
       - name: Checkout Repository
@@ -25,10 +21,10 @@ jobs:
         with:
           python-version: '3.x'
 
-      - name: Setup .NET Framework
-        uses: actions/setup-dotnet@v1
-        with:
-          dotnet-version: 5.0.x
+#       - name: Setup .NET Framework
+#         uses: actions/setup-dotnet@v1
+#         with:
+#           dotnet-version: 5.0.x
 
 #       - name: Restore NuGet Packages
 #         run: |
@@ -49,51 +45,51 @@ jobs:
 #           echo "Git tag added in env!========================"
 #           echo $env:OUR_TAG
 
-#       - name: Install python script
-#         run: |
-#           gci
+      - name: Install python script
+        run: |
+          gci
           
-#           python -m venv ./venv
-#           .\venv\Scripts\Activate.ps1
-#           pip install gitpython
-#           python -m pip install --upgrade pip
-#           cd ParserGUI
+          python -m venv ./venv
+          .\venv\Scripts\Activate.ps1
+          pip install gitpython
+          python -m pip install --upgrade pip
+          cd ParserGUI
           
 
           
-#           $env:tag_name = $(python -c "
-#           import git
+          $env:OUR_TAG = $(python -c "
+          import git
 
-#           repo = git.Repo(search_parent_directories=True)
-#           tags = sorted(repo.tags, key=lambda t: t.commit.committed_datetime)
+          repo = git.Repo(search_parent_directories=True)
+          tags = sorted(repo.tags, key=lambda t: t.commit.committed_datetime)
 
-#           if tags:
-#               latest_tag = str(tags[-1])
-#           else:
-#               latest_tag = 'v1.0.0'
+          if tags:
+              latest_tag = str(tags[-1])
+          else:
+              latest_tag = 'v1.0.0'
 
-#           latest_tag = latest_tag[1:] if latest_tag.startswith('v') else latest_tag
-#           major, minor, patch = map(int, latest_tag.split('.'))
-#           patch += 1
-#           new_tag = '.'.join(map(str, [major, minor, patch]))
-#           print(new_tag)
-#           ")
-#           #echo $env:tag_name > version.txt
+          latest_tag = latest_tag[1:] if latest_tag.startswith('v') else latest_tag
+          major, minor, patch = map(int, latest_tag.split('.'))
+          patch += 1
+          new_tag = '.'.join(map(str, [major, minor, patch]))
+          print(new_tag)
+          ")
+          echo $env:OUR_TAG > version.txt
 
-#           echo "Git tag added in env!"
-#           echo $env:tag_name
+          echo "Git tag added in env!"
+          echo $env:OUR_TAG
           
       - name: Create Release
         id: create_release
         uses: actions/create-release@v1
         env:
-#           OUR_TAG: ${{ env.OUR_TAG }}
+          OUR_TAG: ${{ env.OUR_TAG }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # This token is provided by Actions, you do not need to create your own token
         with:
-          tag_name: ${{ env.tag_name }}
+          tag_name: ${{ env.OUR_TAG }}
           release_name: Release ${{ github.ref }}
           body: |
-            "Build info: Version: ${{ env.tag_name }} ${{ env.tag_name }}, from commit SHA: ${{ github.sha }}"
+            "Build info: Version: ${{ env.OUR_TAG }} ${{ steps.create_release.env.OUR_TAG }}, from commit SHA: ${{ github.sha }}"
             Changes in this Release
             - First Change
             - Second Change
