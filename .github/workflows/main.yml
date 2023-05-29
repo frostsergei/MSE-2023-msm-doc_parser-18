@@ -33,7 +33,7 @@ jobs:
           cd ParserGUI
           nuget restore
         
-     - name: Build Solution
+      - name: Build Solution
         run: |
           (Get-Item .).FullName
           Get-ChildItem
@@ -45,7 +45,7 @@ jobs:
           Get-ChildItem -Verbose
           Get-ChildItem -Verbose
           echo "Git tag added in env!========================"
-          echo $env:OUR_TAG
+          echo $env:OUR_TAG >> $GITHUB_ENV
 
       - name: Install python script
         run: |
@@ -76,6 +76,7 @@ jobs:
           new_tag = '.'.join(map(str, [major, minor, patch]))
           print(new_tag)
           ")
+          $env:OUR_TAG >> $GITHUB_ENV
 
           echo "Git tag added in env!"
           echo $env:OUR_TAG
