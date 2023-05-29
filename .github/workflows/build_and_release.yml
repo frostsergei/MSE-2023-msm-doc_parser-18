@@ -83,10 +83,9 @@ jobs:
         id: create_release
         uses: actions/create-release@v1
         env:
-          OUR_TAG: ${{ env.OUR_TAG }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # This token is provided by Actions, you do not need to create your own token
         with:
-          tag_name: v*
+          tag_name: v1
           release_name: Release ${{ github.ref }}
           body: |
             "Build info: Version: ${{ env.OUR_TAG }} ${{ steps.create_release.env.OUR_TAG }}, from commit SHA: ${{ github.sha }}"
