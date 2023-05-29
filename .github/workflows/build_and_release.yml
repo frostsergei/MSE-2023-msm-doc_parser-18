@@ -62,7 +62,7 @@ jobs:
           
 
           
-          $env:tag_name = $(python -c "
+          $tag_name = $(python -c "
           import git
 
           repo = git.Repo(search_parent_directories=True)
@@ -81,17 +81,17 @@ jobs:
           ")
 
           echo "Git tag added in env!"
-          echo $env:tag_name >> "$GITHUB_OUTPUT"
-          
+          echo $tag_name >> "$GITHUB_OUTPUT"
+        
       - name: Create Release
         id: create_release
         uses: actions/create-release@v1
        
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # This token is provided by Actions, you do not need to create your own token
-          tag_name: $env:tag_name
-        with:
           tag_name: ${{ steps.py_script.outputs.tag_name }}
+        with:
+          tag_name: ${{ env.tag_name }}
           release_name: Release ${{ github.ref }}
           body: |
             "Build info: Version: ${{ steps.py_script.outputs.tag_name }} ${steps.py_script.outputs.tag_name }}, from commit SHA: ${{ github.sha }}"
