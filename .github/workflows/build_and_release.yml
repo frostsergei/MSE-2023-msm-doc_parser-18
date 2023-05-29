@@ -68,7 +68,7 @@ jobs:
           
           $tag_name = $(python -c "
           import git
-
+          import os
           repo = git.Repo(search_parent_directories=True)
           tags = sorted(repo.tags, key=lambda t: t.commit.committed_datetime)
 
