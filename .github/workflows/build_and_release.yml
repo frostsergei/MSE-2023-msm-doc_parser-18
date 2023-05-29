@@ -83,14 +83,14 @@ jobs:
           #echo $env:tag_name > version.txt
 
           echo "Git tag added in env!"
-          echo $env:tag_name >> $GITHUB_ENV
+          echo $env:tag_name > tag_name.txt
           
           
       - name: Create Release
         id: create_release
         uses: actions/create-release@v1
         env:
-#           OUR_TAG: ${{ env.OUR_TAG }}
+          tag_name: $(Get-Content tag_name.txt)
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # This token is provided by Actions, you do not need to create your own token
         with:
           tag_name: ${{ env.tag_name }}
@@ -108,6 +108,7 @@ jobs:
         uses: actions/upload-release-asset@v1.0.1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
           asset_path: README.MD #ParserGUI\ParserGUI\bin\Release\ParserGUI.exe
