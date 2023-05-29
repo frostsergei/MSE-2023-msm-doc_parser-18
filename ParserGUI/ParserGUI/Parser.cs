@@ -54,8 +54,11 @@ namespace ParserCore
             var openCurvyBracketIndex = desc.IndexOf('{');
             var closeCurvyBracketIndex = desc.IndexOf('}');
            
-            var hasRange = openCurvyBracketIndex != -1 && closeCurvyBracketIndex != -1;
-           
+            var hasRange = openCurvyBracketIndex != -1 &&
+                closeCurvyBracketIndex != -1 &&
+                !desc.Substring(openCurvyBracketIndex + 1, closeCurvyBracketIndex - openCurvyBracketIndex - 1)
+                .AsEnumerable().Any(c => char.IsLetter(c));
+
             string range = "";
             try
             {
@@ -80,7 +83,7 @@ namespace ParserCore
                 {
                     if (index == -1) return false;
                     if (index == 0 && index == desc.Length - 1) return false;
-                    if (desc[index - 1] != ' ' && desc[index + 1] != ' ')
+                    if (desc[index - 1] != ' ' || desc[index + 1] != ' ')
                     {
                         return true;
                     }
@@ -89,15 +92,20 @@ namespace ParserCore
                 if (dashIndices.Count > 0)
                 {
                     StringBuilder sb = new StringBuilder();
-                    sb.Append(desc.Substring(0, dashIndices[0]));
+                    int firstIndex = dashIndices[0];
+                    if (desc[dashIndices[0] - 1] == ' ') firstIndex--;
+                    sb.Append(desc.Substring(0, firstIndex));
                     for (int i = 0; i < dashIndices.Count; i++)
                     {
                         var end = desc.Length - 1;
                         if (i + 1 < dashIndices.Count)
                         {
                             end = dashIndices[i + 1];
+                            if (desc[end - 1] == ' ') end--;
                         }
-                        sb.Append(desc.Substring(dashIndices[i] + 1, end - dashIndices[i] - 1));
+                        int after = 1;
+                        if (desc[dashIndices[i]+1] == ' ') after++;
+                        sb.Append(desc.Substring(dashIndices[i] + after, end - dashIndices[i] - ((i == dashIndices.Count - 1) ? after-1 : after)));
                     }
                     desc = sb.ToString();
                 }
@@ -458,7 +466,9 @@ namespace ParserCore
                                         cell_text += elem.GetText();
                                 param.Description += cell_text.Trim();
                             }
-                            if(param.Name.Length > 0 && param.Description.Length > 0){
+                            var rangedesc = ProcessDescription(param.Description);
+                            param.Description = rangedesc.Item2;
+                            if (param.Name.Length > 0 && param.Description.Length > 0){
                                 data.WriteElem(param);
                                 got_params = true;
                             }
@@ -506,7 +516,8 @@ namespace ParserCore
                                 }
                                 else{ // Описание
                                     if(i == 0){
-                                        param.Description = cell_text;
+                                        var rangedesc = ProcessDescription(cell_text);
+                                        param.Description = rangedesc.Item2;
                                         data.WriteElem(param);
                                         got_params = true;
                                     }
@@ -794,7 +805,7 @@ namespace ParserCore
                 if (previous != null)
                 {
                     var hasInsertedWhitespace = false;
-                    var bothNonEmpty = previous.Letters.Count > 0 && word.Letters.Count > 0;
+                    var bothNonEmpty = previous.Letters.Count > 0 && word.Letters.Count > 0 && !string.IsNullOrEmpty( string.Join("",word.Letters));
                     if (bothNonEmpty)
                     {
                         var prevLetter1 = previous.Letters[0];
@@ -848,7 +859,28 @@ namespace ParserCore
             {
                 var contentPageNumber = FindContentPage();
                 ParseAllContent(contentPageNumber);
-                _contentItems = _parsedLines.Select(line => ParseContentTableItem(line)).ToList();
+                _contentItems = new List<ContentTableItem>();
+                for (int i = 0; i < _parsedLines.Count; i++)
+                {
+                    var line = _parsedLines[i];
+                    ContentTableItem? item=null;
+                    string fullLine = line;
+                    for(int lines = 1; lines<3; lines++)
+                    {
+                        try
+                        {
+                            item = ParseContentTableItem(line);
+                            break;
+                        }
+                        catch (FormatException)
+                        {
+                            fullLine += " " + _parsedLines[i + lines];
+                            lines++;
+                        }
+                    }
+                    if(item!=null)
+                        _contentItems.Add(item.Value);
+                }
                 return GetPages();
             }
 
