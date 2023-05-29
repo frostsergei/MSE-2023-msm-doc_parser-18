@@ -59,7 +59,7 @@ namespace ParserCore
             string range = "";
             try
             {
-                if (hasRange)
+                if (hasRange) // -
                 {
                     range = desc.Substring(openCurvyBracketIndex + 1, closeCurvyBracketIndex - openCurvyBracketIndex - 1);
                     desc = desc.Substring(0, openCurvyBracketIndex) + desc.Substring(closeCurvyBracketIndex + 1, desc.Length - closeCurvyBracketIndex - 1);
@@ -97,7 +97,7 @@ namespace ParserCore
                         {
                             end = dashIndices[i + 1];
                         }
-                        sb.Append(desc.Substring(dashIndices[i] + 1, end - dashIndices[i] - 1));
+                        sb.Append(desc.Substring(dashIndices[i] + 1, end - dashIndices[i] - ((i == dashIndices.Count - 1) ? 0 : 1)));
                     }
                     desc = sb.ToString();
                 }
