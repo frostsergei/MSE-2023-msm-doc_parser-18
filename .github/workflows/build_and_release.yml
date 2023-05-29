@@ -90,7 +90,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # This token is provided by Actions, you do not need to create your own token
           tag_name: $env:tag_name
         with:
-          tag_name: $env:tag_name
+          tag_name: ${{ github.workflow }}
           release_name: Release ${{ github.ref }}
           body: |
             "Build info: Version: ${{ env.tag_name }} ${{github.ref }}, from commit SHA: ${{ github.sha }}"
