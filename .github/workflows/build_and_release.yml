@@ -83,7 +83,8 @@ jobs:
           #echo $env:tag_name > version.txt
 
           echo "Git tag added in env!"
-          echo $env:tag_name
+          echo $env:tag_name >> $GITHUB_ENV
+          
           
       - name: Create Release
         id: create_release
