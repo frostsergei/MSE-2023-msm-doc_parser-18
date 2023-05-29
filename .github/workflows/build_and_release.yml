@@ -67,6 +67,7 @@ jobs:
 
           
           $tag_name = $(python -c "
+          # -*- coding: utf-8 -*-
           import git
           import os
           repo = git.Repo(search_parent_directories=True)
