@@ -62,7 +62,7 @@ namespace ParserCore
             string range = "";
             try
             {
-                if (hasRange)
+                if (hasRange) // -
                 {
                     range = desc.Substring(openCurvyBracketIndex + 1, closeCurvyBracketIndex - openCurvyBracketIndex - 1);
                     desc = desc.Substring(0, openCurvyBracketIndex) + desc.Substring(closeCurvyBracketIndex + 1, desc.Length - closeCurvyBracketIndex - 1);
@@ -114,6 +114,23 @@ namespace ParserCore
             {
                 Console.WriteLine(e.Message);
             }
+
+            // Удаление идущих "подряд" (через пробельные символы) точек
+            for(int i = 0; (i = desc.IndexOf('.', i)) != -1; ++i){
+                int j = i + 1;
+                if(j >= desc.Length)
+                    break;
+                while(j < desc.Length - 1 && Char.IsWhiteSpace(desc[j]))
+                    ++j;
+                //Console.WriteLine("between " + i + "("+ desc[i] + ") and " + j + "(" + desc[j] + ")");
+                if(desc[j] == '.')
+                    desc = desc.Remove(i + 1, j - i);
+            }
+            // Удаление идущих подряд точек и пробелов
+            while(desc.IndexOf("..") != -1)
+                desc = desc.Replace("..", ".");
+            while(desc.IndexOf("  ") != -1)
+                desc = desc.Replace("  ", " ");
 
             return new Tuple<string, string>(range, desc);
         }
@@ -1034,7 +1051,6 @@ namespace ParserCore
                 }
                 return pages.ToList();
             }
-          
         }
     }
 }
