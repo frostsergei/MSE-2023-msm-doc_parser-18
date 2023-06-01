@@ -13,6 +13,8 @@ on:
 #     branches: [ main ]
 jobs:
   build-and-test:
+    
+      
     runs-on: windows-latest
 #     runs-on: self-hosted
     steps:
@@ -116,15 +118,13 @@ jobs:
       - name: Create Release
         id: create_release
         uses: actions/create-release@v1
-       
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # This token is provided by Actions, you do not need to create your own token
-
-        with:
           tag_name:  v1.0.5
-          release_name: Release ${{ tag_name }}
+        with:
+          release_name: Release ${{ env.tag_name }}
           body: |
-            "Build info: Version: ${{ tag_name }}, from commit SHA: ${{ github.sha }}"
+            "Build info: Version: ${{ env.tag_name }}, from commit SHA: ${{ github.sha }}"
             Changes in this Release
 
           draft: false
