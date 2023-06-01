@@ -46,7 +46,7 @@ jobs:
           (Get-Item .).FullName
           Get-ChildItem
           $env:Path += ";C:\Program Files\Microsoft Visual Studio\2022\Enterprise\MSBuild\Current\bin"
-          msbuild /p:Configuration=Release /p:Platform=x64 ParserGUI.sln
+          msbuild /p:Configuration=Release ParserGUI.sln
           Get-ChildItem -Verbose
           Get-ChildItem -Verbose
           echo "Git tag added in env!========================"
