@@ -23,34 +23,34 @@ jobs:
         with:
          ref: dev
           
-      - name: Set up Python
-        uses: actions/setup-python@v1
-        with:
-          python-version: '3.x'
-
-#       - name: Setup .NET Framework
-#         uses: actions/setup-dotnet@v1
+#       - name: Set up Python
+#         uses: actions/setup-python@v1
 #         with:
-#           dotnet-version: 5.0.x
+#           python-version: '3.x'
 
-#       - name: Restore NuGet Packages
-#         run: |
-#           cd ParserGUI
-#           nuget restore
+      - name: Setup .NET Framework
+        uses: actions/setup-dotnet@v1
+        with:
+          dotnet-version: 5.0.x
+
+      - name: Restore NuGet Packages
+        run: |
+          cd ParserGUI
+          nuget restore
         
-#       - name: Build Solution
-#         run: |
-#           (Get-Item .).FullName
-#           Get-ChildItem
-#           cd ParserGUI
-#           (Get-Item .).FullName
-#           Get-ChildItem
-#           $env:Path += ";C:\Program Files\Microsoft Visual Studio\2022\Enterprise\MSBuild\Current\bin"
-#           msbuild /p:Configuration=Release ParserGUI.sln
-#           Get-ChildItem -Verbose
-#           Get-ChildItem -Verbose
-#           echo "Git tag added in env!========================"
-#           echo $env:OUR_TAG
+      - name: Build Solution
+        run: |
+          (Get-Item .).FullName
+          Get-ChildItem
+          cd ParserGUI
+          (Get-Item .).FullName
+          Get-ChildItem
+          $env:Path += ";C:\Program Files\Microsoft Visual Studio\2022\Enterprise\MSBuild\Current\bin"
+          msbuild /p:Configuration=Release ParserGUI.sln
+          Get-ChildItem -Verbose
+          Get-ChildItem -Verbose
+          echo "Git tag added in env!========================"
+          echo $env:OUR_TAG
 
 #       - name: Install python script
 #         id: py_script
@@ -120,7 +120,7 @@ jobs:
         uses: actions/create-release@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # This token is provided by Actions, you do not need to create your own token
-          tag_name:  v1.0.5
+          tag_name:  v1.0.6
         with:
           tag_name: ${{ env.tag_name }}
           release_name: Release ${{ env.tag_name }}
@@ -138,7 +138,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: README.MD #ParserGUI\ParserGUI\bin\Release\ParserGUI.exe
+          asset_path: ParserGUI\ParserGUI\bin\Release\ParserGUI.exe
           asset_name: ParserGUI.exe
           asset_content_type: application/x-msdownload
 
