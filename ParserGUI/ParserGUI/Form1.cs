@@ -128,8 +128,12 @@ namespace ParserGUI
             this.Location.X + this.Width / 2 - WaitForm2.ClientSize.Width / 2,
             this.Location.Y + this.Height / 2 - WaitForm2.ClientSize.Height / 2);
         }
+        private void AutoSizeRowsMode(Object sender, EventArgs es)
+        {
+            DataTable.AutoSizeRowsMode =
+                DataGridViewAutoSizeRowsMode.AllCells;
+        }
 
-        
     }
 }
 
